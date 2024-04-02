@@ -184,7 +184,7 @@ for year in each_year:
     
     plt.legend()
     plt.grid(axis = 'y')
-    plt.xticks(rotation=65)
+    plt.xticks(rotation=65, horizontalalignment='right')
 
 
 
@@ -209,7 +209,7 @@ for year in each_year:
     
     plt.legend()
     plt.grid(axis = 'y')
-    plt.xticks(rotation=65)
+    plt.xticks(rotation=65, horizontalalignment='right')
 
 
 
@@ -272,7 +272,7 @@ for year in each_year:
 
     #plt.figure(figsize=(10, 6))
     plt.grid(axis = 'y')
-    plt.xticks(rotation=65)
+    plt.xticks(rotation=65, horizontalalignment='right')
     
     plt.plot(x, rsi)
     
@@ -351,7 +351,7 @@ plt.plot(x_points, average_y_60, linestyle = 'dashed', label='Running average 60
 plt.legend()
 
 plt.grid(axis = 'y')
-plt.xticks(rotation=65)
+plt.xticks(rotation=65, horizontalalignment='right')
 
 
 plt.savefig('chart1.png')
