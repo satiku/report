@@ -6,7 +6,10 @@ import ta
 import pandas as pd
 from  fpdf import FPDF as fpdf
 import time
-
+from datetime import datetime 
+from matplotlib.dates import ( 
+    DateFormatter, AutoDateLocator, AutoDateFormatter, datestr2num 
+) 
 
 
 def moving_average(window, inputValue):
@@ -112,7 +115,10 @@ for year in each_year:
 
     
     
-    x = np.array(each_year[year]['x_values'])
+    converted_dates = datestr2num([ datetime.strptime(day, '%Y-%m-%d').strftime('%m/%d/%Y') for day in each_year[year]['x_values'] ]) 
+
+
+    x = np.array(converted_dates)
     y = np.array(each_year[year]['y_values'])
 
     
@@ -177,13 +183,13 @@ for year in each_year:
     plt.subplot(2, 1, 1)
     plt.title(year)
     
-    plt.plot( x, y, label='Value')
-    plt.plot( x, best_fit, label='linear')
-    plt.plot( x, theta_fit_2, label='poly 2')   
-    plt.plot( x, theta_fit_3, label='poly 3')       
+    plt.plot_date( x, y, fmt='-', marker = 'none' , label='Value')
+    plt.plot_date( x, best_fit, fmt='-', marker = 'none' , label='linear')
+    plt.plot_date( x, theta_fit_2, fmt='-', marker = 'none' , label='poly 2')   
+    plt.plot_date( x, theta_fit_3, fmt='-', marker = 'none' , label='poly 3')       
     
     plt.legend()
-    plt.grid(axis = 'y')
+    plt.grid(axis = 'both')
     plt.xticks(rotation=65, horizontalalignment='right')
 
 
@@ -197,18 +203,18 @@ for year in each_year:
 
 
     
-    plt.plot( x, y, label='Value')
+    plt.plot_date( x, y, fmt='-', marker = 'none' , label='Value')
 
-    plt.plot(x, average_y_5 , linestyle = 'dashed', color='orange' , label='Running average 5')
-    plt.plot(x, average_y_20, linestyle = 'dashed', color='green' , label='Running average 20')
-    plt.plot(x, average_y_60, linestyle = 'dashed', color='red' , label='Running average 60')
+    plt.plot_date(x, average_y_5 , fmt='--', marker = 'none' , color='orange' , label='Running average 5')
+    plt.plot_date(x, average_y_20, fmt='--', marker = 'none' , color='green' , label='Running average 20')
+    plt.plot_date(x, average_y_60, fmt='--', marker = 'none' , color='red' , label='Running average 60')
     
     
     
     
     
     plt.legend()
-    plt.grid(axis = 'y')
+    plt.grid(axis = 'both')
     plt.xticks(rotation=65, horizontalalignment='right')
 
 
@@ -231,13 +237,13 @@ for year in each_year:
     plt.title(year + " - MA")
 
 
-    plt.grid(axis = 'y')
-    plt.xticks([])
+    plt.grid(axis = 'both')
+    plt.xticks(rotation=65, horizontalalignment='right')
 
 
-    plt.plot(x, average_y_5 , linestyle = 'dashed', color='orange' , label='Running average 5')
-    plt.plot(x, average_y_20, linestyle = 'dashed', color='green' , label='Running average 20')
-    plt.plot(x, average_y_60, linestyle = 'dashed', color='red' , label='Running average 60')
+    plt.plot_date(x, average_y_5 , fmt='--', marker = 'none' , color='orange' , label='Running average 5')
+    plt.plot_date(x, average_y_20, fmt='--', marker = 'none' , color='green' , label='Running average 20')
+    plt.plot_date(x, average_y_60, fmt='--', marker = 'none' , color='red' , label='Running average 60')
 
     plt.legend()
 
@@ -248,11 +254,11 @@ for year in each_year:
     plt.title(year + " - MACD")
 
 
-    plt.grid(axis = 'y')
-    plt.xticks([])
+    plt.grid(axis = 'both')
+    plt.xticks(rotation=65, horizontalalignment='right')
 
-    plt.plot(x, average_y_5_20, linestyle = 'dashed', color='green' , label='Running average 5 - 20')
-    plt.plot(x, average_y_5_60, linestyle = 'dashed', color='red' , label='Running average 5 - 60')
+    plt.plot_date(x, average_y_5_20, fmt='--', marker = 'none' , color='green' , label='Running average 5 - 20')
+    plt.plot_date(x, average_y_5_60, fmt='--', marker = 'none' , color='red' , label='Running average 5 - 60')
 
     plt.legend()
 
@@ -274,7 +280,7 @@ for year in each_year:
     plt.grid(axis = 'y')
     plt.xticks(rotation=65, horizontalalignment='right')
     
-    plt.plot(x, rsi)
+    plt.plot_date(x, rsi, fmt='-', marker = 'none' )
     
     plt.axhline(y=upper_limit, color='r', linestyle='--', label='Overbought (70)')
     plt.axhline(y=lower_limit, color='g', linestyle='--', label='Oversold (30)')
@@ -310,10 +316,12 @@ for year in each_year:
 
 
 
+converted_dates = datestr2num([ datetime.strptime(day, '%Y-%m-%d').strftime('%m/%d/%Y') for day in x_values ]) 
 
 
 
-x_points = np.array(x_values)
+
+x_points = np.array(converted_dates)
 y_points = np.array(y_values)
 
 
@@ -332,25 +340,30 @@ f.set_figwidth(25)
 
 plt.subplot(2, 1, 1)
 plt.title("Value")
-plt.plot( x_points, y_points)
 
 
-plt.plot(x_points, average_y_5 , linestyle = 'dashed', label='Running average 5')
-plt.plot(x_points, average_y_20, linestyle = 'dashed', label='Running average 20')
-plt.plot(x_points, average_y_60, linestyle = 'dashed', label='Running average 60')
 
+plt.plot_date( x_points, y_points , fmt='-', marker = 'none' )
+
+plt.plot_date(x_points, average_y_5 , fmt='--', marker = 'none' , label='Running average 5')
+plt.plot_date(x_points, average_y_20, fmt='--', marker = 'none' , label='Running average 20')
+plt.plot_date(x_points, average_y_60, fmt='--', marker = 'none' , label='Running average 60')
+
+plt.legend()
+plt.xticks(rotation=65, horizontalalignment='right')
+plt.grid(axis = 'both')
 
 plt.subplot(2, 1, 2)
 plt.title("MA")
-plt.plot(x_points, average_y_5 , linestyle = 'dashed', label='Running average 5')
-plt.plot(x_points, average_y_20, linestyle = 'dashed', label='Running average 20')
-plt.plot(x_points, average_y_60, linestyle = 'dashed', label='Running average 60')
+plt.plot_date(x_points, average_y_5 , fmt='--', marker = 'none' , label='Running average 5')
+plt.plot_date(x_points, average_y_20, fmt='--', marker = 'none' , label='Running average 20')
+plt.plot_date(x_points, average_y_60, fmt='--', marker = 'none' , label='Running average 60')
 
 
 
 plt.legend()
 
-plt.grid(axis = 'y')
+plt.grid(axis = 'both')
 plt.xticks(rotation=65, horizontalalignment='right')
 
 
