@@ -390,25 +390,37 @@ pdf = fpdf(orientation="P", unit="mm", format="A4")
 
 
 pdf.add_page()
-pdf.set_font("helvetica", "B", 16)
+pdf.set_font("helvetica", "B", 20)
 
-pdf.cell(40, 10, "Report" , 1 , align='C')
+pdf.cell(0, 18, "Report" , 1 , align='C')
 pdf.ln()
 
 pdf.set_font("helvetica", "B", 12)
-pdf.cell(40, 10, "generated " + time.strftime("%Y-%m-%d %H:%M") )
+pdf.cell(0, 10, "Portfolio Date " , align='L' )
+pdf.cell(0, 10, "Generated " ,align='R' )
+
 pdf.ln()
-pdf.ln()
+
+pdf.set_font("helvetica", "", 12)
+pdf.cell(0, 10, x_values[-1] , align='L' )
+pdf.cell(0, 10, time.strftime("%Y-%m-%d %H:%M") , align='R' )
+
+pdf.ln(20)
+
+
+pdf.set_font("helvetica", "B", 12)
+pdf.cell(30, 10, "Year" )
+pdf.cell(30, 10, "Linear slope" )
+
 pdf.ln()
 
 for year in each_year:
-    pdf.set_font("helvetica", "B", 12)
-    pdf.cell(40, 10, year )
-    pdf.ln()
-    pdf.cell(40, 10, str(each_year[year]['linear_slop']) )
+    pdf.set_font("helvetica", "", 12)
+    pdf.cell(30, 10, year )
+    pdf.cell(30, 10, str(each_year[year]['linear_slop']) )
+    
     pdf.ln()
 
-    pdf.ln()
 
 
 
@@ -430,7 +442,9 @@ pdf.image('chart1.png', w = 200 , h = 250)
 for year in each_year:
     print(year)
     pdf.add_page()
-    pdf.cell(40, 10, year + " Report" , 1 , align='C')
+
+    pdf.set_font("helvetica", "B", 20)
+    pdf.cell(0, 18, year + " Report" , 1 , align='C')
     pdf.ln()
 
     pdf.add_page()
