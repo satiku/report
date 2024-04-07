@@ -183,10 +183,10 @@ for year in each_year:
     plt.subplot(2, 1, 1)
     plt.title(year)
     
-    plt.plot_date( x, y, fmt='-', marker = 'none' , label='Value')
-    plt.plot_date( x, best_fit, fmt='-', marker = 'none' , label='linear')
-    plt.plot_date( x, theta_fit_2, fmt='-', marker = 'none' , label='poly 2')   
-    plt.plot_date( x, theta_fit_3, fmt='-', marker = 'none' , label='poly 3')       
+    plt.plot_date( x, y, fmt='-', marker = ' ' , label='Value')
+    plt.plot_date( x, best_fit, fmt='-', marker = ' ' , label='linear')
+    plt.plot_date( x, theta_fit_2, fmt='-', marker = ' ' , label='poly 2')   
+    plt.plot_date( x, theta_fit_3, fmt='-', marker = ' ' , label='poly 3')       
     
     plt.legend()
     plt.grid(axis = 'both')
@@ -203,11 +203,11 @@ for year in each_year:
 
 
     
-    plt.plot_date( x, y, fmt='-', marker = 'none' , label='Value')
+    plt.plot_date( x, y, fmt='-', marker = ' ' , label='Value')
 
-    plt.plot_date(x, average_y_5 , fmt='--', marker = 'none' , color='orange' , label='Running average 5')
-    plt.plot_date(x, average_y_20, fmt='--', marker = 'none' , color='green' , label='Running average 20')
-    plt.plot_date(x, average_y_60, fmt='--', marker = 'none' , color='red' , label='Running average 60')
+    plt.plot_date(x, average_y_5 , fmt='--', marker = ' ' , color='orange' , label='Running average 5')
+    plt.plot_date(x, average_y_20, fmt='--', marker = ' ' , color='green' , label='Running average 20')
+    plt.plot_date(x, average_y_60, fmt='--', marker = ' ' , color='red' , label='Running average 60')
     
     
     
@@ -241,9 +241,9 @@ for year in each_year:
     plt.xticks(rotation=65, horizontalalignment='right')
 
 
-    plt.plot_date(x, average_y_5 , fmt='--', marker = 'none' , color='orange' , label='Running average 5')
-    plt.plot_date(x, average_y_20, fmt='--', marker = 'none' , color='green' , label='Running average 20')
-    plt.plot_date(x, average_y_60, fmt='--', marker = 'none' , color='red' , label='Running average 60')
+    plt.plot_date(x, average_y_5 , fmt='--', marker = ' ' , color='orange' , label='Running average 5')
+    plt.plot_date(x, average_y_20, fmt='--', marker = ' ' , color='green' , label='Running average 20')
+    plt.plot_date(x, average_y_60, fmt='--', marker = ' ' , color='red' , label='Running average 60')
 
     plt.legend()
 
@@ -257,8 +257,8 @@ for year in each_year:
     plt.grid(axis = 'both')
     plt.xticks(rotation=65, horizontalalignment='right')
 
-    plt.plot_date(x, average_y_5_20, fmt='--', marker = 'none' , color='green' , label='Running average 5 - 20')
-    plt.plot_date(x, average_y_5_60, fmt='--', marker = 'none' , color='red' , label='Running average 5 - 60')
+    plt.plot_date(x, average_y_5_20, fmt='--', marker = ' ' , color='green' , label='Running average 5 - 20')
+    plt.plot_date(x, average_y_5_60, fmt='--', marker = ' ' , color='red' , label='Running average 5 - 60')
 
     plt.legend()
 
@@ -280,7 +280,7 @@ for year in each_year:
     plt.grid(axis = 'y')
     plt.xticks(rotation=65, horizontalalignment='right')
     
-    plt.plot_date(x, rsi, fmt='-', marker = 'none' )
+    plt.plot_date(x, rsi, fmt='-', marker = ' ' )
     
     plt.axhline(y=upper_limit, color='r', linestyle='--', label='Overbought (70)')
     plt.axhline(y=lower_limit, color='g', linestyle='--', label='Oversold (30)')
@@ -343,11 +343,11 @@ plt.title("Value")
 
 
 
-plt.plot_date( x_points, y_points , fmt='-', marker = 'none' )
+plt.plot_date( x_points, y_points , fmt='-', marker = ' ' )
 
-plt.plot_date(x_points, average_y_5 , fmt='--', marker = 'none' , label='Running average 5')
-plt.plot_date(x_points, average_y_20, fmt='--', marker = 'none' , label='Running average 20')
-plt.plot_date(x_points, average_y_60, fmt='--', marker = 'none' , label='Running average 60')
+plt.plot_date(x_points, average_y_5 , fmt='--', marker = ' ' , label='Running average 5')
+plt.plot_date(x_points, average_y_20, fmt='--', marker = ' ' , label='Running average 20')
+plt.plot_date(x_points, average_y_60, fmt='--', marker = ' ' , label='Running average 60')
 
 plt.legend()
 plt.xticks(rotation=65, horizontalalignment='right')
@@ -355,9 +355,9 @@ plt.grid(axis = 'both')
 
 plt.subplot(2, 1, 2)
 plt.title("MA")
-plt.plot_date(x_points, average_y_5 , fmt='--', marker = 'none' , label='Running average 5')
-plt.plot_date(x_points, average_y_20, fmt='--', marker = 'none' , label='Running average 20')
-plt.plot_date(x_points, average_y_60, fmt='--', marker = 'none' , label='Running average 60')
+plt.plot_date(x_points, average_y_5 , fmt='--', marker = ' ' , label='Running average 5')
+plt.plot_date(x_points, average_y_20, fmt='--', marker = ' ' , label='Running average 20')
+plt.plot_date(x_points, average_y_60, fmt='--', marker = ' ' , label='Running average 60')
 
 
 
