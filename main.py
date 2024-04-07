@@ -405,17 +405,22 @@ pdf.set_font("helvetica", "", 12)
 pdf.cell(0, 10, x_values[-1] , align='L' )
 pdf.cell(0, 10, time.strftime("%Y-%m-%d %H:%M") , align='R' )
 
-pdf.ln()
+pdf.ln(20)
+
+
+pdf.set_font("helvetica", "B", 12)
+pdf.cell(30, 10, "Year" )
+pdf.cell(30, 10, "Linear slope" )
+
 pdf.ln()
 
 for year in each_year:
-    pdf.set_font("helvetica", "B", 12)
-    pdf.cell(40, 10, year )
-    pdf.ln()
-    pdf.cell(40, 10, str(each_year[year]['linear_slop']) )
+    pdf.set_font("helvetica", "", 12)
+    pdf.cell(30, 10, year )
+    pdf.cell(30, 10, str(each_year[year]['linear_slop']) )
+    
     pdf.ln()
 
-    pdf.ln()
 
 
 
