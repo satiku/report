@@ -133,9 +133,16 @@ for year in each_year:
     rsi = np.array(each_year[year]['rsi'])
     
     
-    
+    sst = sum([(day - np.average(y))**2 for day in y ])
 
-    m, b = np.polyfit(np.array(range(len(x))), y, 1)
+    m_b,ssr , _, _, _ = np.polyfit(np.array(range(len(x))), y, 1,full="true")
+
+    m = m_b[0]
+    b = m_b[1]
+    ssr =ssr[0]
+    
+    r2 = 1 -(ssr/sst)
+    print(round(r2, 3))
     
     theta_2 = np.polyfit(np.array(range(len(x))), y, 2)
     theta_3 = np.polyfit(np.array(range(len(x))), y, 3)
@@ -143,7 +150,7 @@ for year in each_year:
     
     
     each_year[year]['linear_slop'] = round(m, 3)
- 
+    each_year[year]['r2'] = round(r2, 3)
     
     best_fit_list = []
     theta_fit_list_2 =[]
@@ -411,6 +418,7 @@ pdf.ln(20)
 pdf.set_font("helvetica", "B", 12)
 pdf.cell(30, 10, "Year" )
 pdf.cell(30, 10, "Linear slope" )
+pdf.cell(30, 10, "R squared" )
 
 pdf.ln()
 
@@ -418,6 +426,7 @@ for year in each_year:
     pdf.set_font("helvetica", "", 12)
     pdf.cell(30, 10, year )
     pdf.cell(30, 10, str(each_year[year]['linear_slop']) )
+    pdf.cell(30, 10, str(each_year[year]['r2']) )
     
     pdf.ln()
 
