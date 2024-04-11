@@ -145,7 +145,7 @@ for year in each_year:
     print(round(r2, 3))
     
     theta_2 = np.polyfit(np.array(range(len(x))), y, 2)
-    theta_3 = np.polyfit(np.array(range(len(x))), y, 3)
+
     
     
     
@@ -154,23 +154,19 @@ for year in each_year:
     
     best_fit_list = []
     theta_fit_list_2 =[]
-    theta_fit_list_3 =[]
 
     
     for i in range(len(each_year[year]['x_values'])):
 
         best_fit_list.append(m*i+b)
         z_2 = np.poly1d(theta_2)
-        z_3 = np.poly1d(theta_3)
         
         theta_fit_list_2.append(z_2(i))
-        theta_fit_list_3.append(z_3(i))
     
     best_fit = np.array(best_fit_list)
     
     theta_fit_2 = np.array(theta_fit_list_2)
-    theta_fit_3 = np.array(theta_fit_list_3)
-    
+
     
     
     
@@ -192,8 +188,7 @@ for year in each_year:
     
     plt.plot_date( x, y, fmt='-', marker = ' ' , label='Value')
     plt.plot_date( x, best_fit, fmt='-', marker = ' ' , label='linear')
-    plt.plot_date( x, theta_fit_2, fmt='-', marker = ' ' , label='poly 2')   
-    plt.plot_date( x, theta_fit_3, fmt='-', marker = ' ' , label='poly 3')       
+    plt.plot_date( x, theta_fit_2, fmt='-', marker = ' ' , label='poly 2')      
     
     plt.legend()
     plt.grid(axis = 'both')
