@@ -65,6 +65,7 @@ with open('P1.csv', newline='') as csvfile:
                 
                 each_year[row[1].split(" ")[0].split("-")[0]]['average_y_5_20'] = []
                 each_year[row[1].split(" ")[0].split("-")[0]]['average_y_5_60'] = []                
+                each_year[row[1].split(" ")[0].split("-")[0]]['average_y_20_60'] = []                
                 
                 each_year[row[1].split(" ")[0].split("-")[0]]['rsi'] = []   
 
@@ -99,6 +100,7 @@ with open('P1.csv', newline='') as csvfile:
         
         each_year[year]['average_y_5_20'].append(average_y_5[i] - average_y_20[i])
         each_year[year]['average_y_5_60'].append(average_y_5[i] - average_y_60[i])
+        each_year[year]['average_y_20_60'].append(average_y_20[i] - average_y_60[i])        
         each_year[year]['rsi'].append(rsi[i])
 
 
@@ -129,6 +131,7 @@ for year in each_year:
     
     average_y_5_20 = np.array(each_year[year]['average_y_5_20'])    
     average_y_5_60 = np.array(each_year[year]['average_y_5_60'])    
+    average_y_20_60 = np.array(each_year[year]['average_y_20_60'])  
     
     rsi = np.array(each_year[year]['rsi'])
     
@@ -260,7 +263,8 @@ for year in each_year:
     plt.xticks(rotation=65, horizontalalignment='right')
 
     plt.plot_date(x, average_y_5_20, fmt='--', marker = ' ' , color='green' , label='Running average 5 - 20')
-    plt.plot_date(x, average_y_5_60, fmt='--', marker = ' ' , color='red' , label='Running average 5 - 60')
+#    plt.plot_date(x, average_y_5_60, fmt='--', marker = ' ' , color='orange' , label='Running average 5 - 60')
+    plt.plot_date(x, average_y_20_60, fmt='--', marker = ' ' , color='red' , label='Running average 20 - 60')
 
     plt.legend()
 
