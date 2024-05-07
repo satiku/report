@@ -104,8 +104,26 @@ with open('P1.csv', newline='') as csvfile:
         each_year[year]['rsi'].append(rsi[i])
 
 
-        
 
+all_time_high = 0
+cycle_low = y_values[0]
+
+for value in y_values :
+
+    if value > all_time_high : 
+        
+        if all_time_high != cycle_low:
+        
+            print(all_time_high , cycle_low , all_time_high - cycle_low)
+        
+        all_time_high = value
+        cycle_low = value
+        
+    elif value < all_time_high and value < cycle_low : 
+        
+        cycle_low = value
+
+        
 
 for year in each_year:
 
