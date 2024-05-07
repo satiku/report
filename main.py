@@ -42,6 +42,8 @@ each_year = {}
 
 with open('P1.csv', newline='') as csvfile:
 
+#with open('Net Worth.csv', newline='') as csvfile:
+
     reader = csv.reader(csvfile)
 
     for row in reader:
@@ -104,11 +106,19 @@ with open('P1.csv', newline='') as csvfile:
         each_year[year]['rsi'].append(rsi[i])
 
 
-        
 
+all_time_high = 0
+
+for value in y_values :
+
+    if y_values > all_time_high : 
+    
+    
+        all_time_high = y_values
+        print all_time_high
 
 for year in each_year:
-
+    print()
     print(year)
     
     if not os.path.exists(year):
@@ -149,8 +159,13 @@ for year in each_year:
     
     theta_2 = np.polyfit(np.array(range(len(x))), y, 2)
 
+    if year != list(each_year.items())[-1][0] : 
     
-    
+        print((y[-1] - y[0])/y[0])
+        print(len(y))
+    elif year == list(each_year.items())[-1][0] : 
+        print((y_values[-1] - y_values[-250])/y_values[-250])
+        print(250)        
     
     each_year[year]['linear_slop'] = round(m, 3)
     each_year[year]['r2'] = round(r2, 3)
