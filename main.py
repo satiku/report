@@ -108,21 +108,37 @@ with open('P1.csv', newline='') as csvfile:
 all_time_high = 0
 cycle_low = y_values[0]
 
-for value in y_values :
+print("high low cycle")
+print()
+print("------------+------------------+------------------+--------------+--------+----------+")
+print("        date|     all time high|      all time low|    difference|    days|   percent|")
+print("------------+------------------+------------------+--------------+--------+----------+")
+
+for index, value in enumerate(y_values) :
 
     if value > all_time_high : 
         
-        if all_time_high != cycle_low:
+        if all_time_high != cycle_low and index != 0 and cycle_low_index - all_time_high_index > 2:
         
-            print(all_time_high , cycle_low , all_time_high - cycle_low)
-        
+            print('{0:>12s}|  {1:>16.2f}|  {2:>16.2f}|  {3:>12.2f}|  {4:6}|  {5:>8.2f}|'.format(
+            
+            x_values[all_time_high_index] , 
+            round(all_time_high,3) , 
+            cycle_low , 
+            round(all_time_high - cycle_low ,3) , 
+            cycle_low_index - all_time_high_index , 
+            round((((all_time_high - cycle_low)/all_time_high)*100),3))
+            
+            )
+            
+        all_time_high_index = index
         all_time_high = value
         cycle_low = value
         
     elif value < all_time_high and value < cycle_low : 
         
         cycle_low = value
-
+        cycle_low_index = index 
         
 
 for year in each_year:
