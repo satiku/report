@@ -35,7 +35,9 @@ def gen_all_time(file):
     all_time['x_values'] = []
     all_time['y_values'] = []    
 
-
+    all_time['average_y_5_20'] = []
+    all_time['average_y_5_60'] = []                
+    all_time['average_y_20_60'] = []
 
 
     with open(file, newline='') as csvfile:
@@ -59,7 +61,11 @@ def gen_all_time(file):
         all_time['average_y_20'] = moving_average(20 ,all_time['y_values'])
         all_time['average_y_60'] = moving_average(60 ,all_time['y_values'])
 
+        for index ,_ in enumerate(all_time['y_values']) :
 
+            all_time['average_y_5_20'].append(all_time['average_y_5'][index] - all_time['average_y_20'][index])
+            all_time['average_y_5_60'].append(all_time['average_y_5'][index] - all_time['average_y_60'][index])
+            all_time['average_y_20_60'].append(all_time['average_y_20'][index] - all_time['average_y_60'][index])    
 
         df = pd.DataFrame({'Actual': all_time['y_values']})
 
@@ -257,30 +263,184 @@ def gen_time_frame_stats(all_time):
     
 
 
+def gen_best_fit_ma_chart(data_set_id, data_set):
+    
 
+#    
+#    x = np.array(converted_dates)
+#    y = np.array(each_year[year]['y_values'])
+#
+#    
+#    average_y_5 = np.array(each_year[year]['average_y_5'])
+#    average_y_20 = np.array(each_year[year]['average_y_20'])
+#    average_y_60 = np.array(each_year[year]['average_y_60'])
+#    
+#    
+#    average_y_5_20 = np.array(each_year[year]['average_y_5_20'])    
+#    average_y_5_60 = np.array(each_year[year]['average_y_5_60'])    
+#    average_y_20_60 = np.array(each_year[year]['average_y_20_60'])  
+#    
+#    rsi = np.array(each_year[year]['rsi'])
+#    
+    
+    
+    
+    converted_dates = datestr2num([ datetime.strptime(day, '%Y-%m-%d').strftime('%m/%d/%Y') for day in data_set['x_values'] ]) 
+
+
+    x = converted_dates
+
+    
+
+    
+    f = plt.figure()
+    f.set_figheight(20)
+    f.set_figwidth(40)
+
+
+
+
+
+    plt.subplot(2, 1, 1)
+    plt.title(data_set_id)
+    
+    plt.plot_date( x, data_set['y_values']          , fmt='-', marker = ' ' , label='Value')
+    plt.plot_date( x, data_set['best_fit_line']     , fmt='-', marker = ' ' , label='linear')
+    plt.plot_date( x, data_set['theta_fit_list_2']  , fmt='-', marker = ' ' , label='poly 2')      
+    
+    plt.legend()
+    plt.grid(axis = 'both')
+    plt.xticks(rotation=65, horizontalalignment='right')
+
+
+
+
+    plt.subplot(2, 1, 2)
+    plt.title(data_set_id + " - Value")
+
+
+    
+    plt.plot_date( x, data_set['y_values']       , fmt='-', marker = ' ' , label='Value')
+
+    plt.plot_date(x, data_set['average_y_5']     , fmt='--', marker = ' ' , color='orange'  , label='Running average 5')
+    plt.plot_date(x, data_set['average_y_20']    , fmt='--', marker = ' ' , color='green'   , label='Running average 20')
+    plt.plot_date(x, data_set['average_y_60']    , fmt='--', marker = ' ' , color='red'     , label='Running average 60')
+    
+    
+    
+    
+    plt.legend()
+    plt.grid(axis = 'both')
+    plt.xticks(rotation=65, horizontalalignment='right')
+
+
+
+    filename = data_set_id + "/value-ma.png"
+
+    plt.savefig(filename)
+    plt.clf()
+    
+
+
+def gen_ma_macd_rsi_chart(data_set_id, data_set):
+
+
+    converted_dates = datestr2num([ datetime.strptime(day, '%Y-%m-%d').strftime('%m/%d/%Y') for day in data_set['x_values'] ]) 
+
+
+    x = converted_dates
+
+   
+   
+   
+    plt.subplot(3, 1, 1)
+    plt.title(data_set_id + " - MA")
+
+
+    plt.grid(axis = 'both')
+    plt.xticks(rotation=65, horizontalalignment='right')
+
+
+    plt.plot_date(x, data_set['average_y_5']       , fmt='--', marker = ' ' , color='orange'      , label='Running average 5')
+    plt.plot_date(x, data_set['average_y_20']      , fmt='--', marker = ' ' , color='green'       , label='Running average 20')
+    plt.plot_date(x, data_set['average_y_60']      , fmt='--', marker = ' ' , color='red'         , label='Running average 60')
+
+    plt.legend()
+
+
+
+
+    plt.subplot(3, 1, 2)
+    plt.title(data_set_id + " - MACD")
+
+
+    plt.grid(axis = 'both')
+    plt.xticks(rotation=65, horizontalalignment='right')
+
+    plt.plot_date(x, data_set['average_y_5_20']    , fmt='--', marker = ' ' , color='green'     , label='Running average 5 - 20')
+#    plt.plot_date(x, data_set['average_y_5_60']    , fmt='--', marker = ' ' , color='orange'    , label='Running average 5 - 60')
+    plt.plot_date(x, data_set['average_y_20_60']   , fmt='--', marker = ' ' , color='red'       , label='Running average 20 - 60')
+
+    plt.legend()
+
+
+
+
+
+
+    plt.subplot(3, 1, 3)
+    plt.title(data_set_id + " - RSI")
+
+
+    upper_limit = 70
+    lower_limit = 30
+
+    #plt.figure(figsize=(10, 6))
+    plt.grid(axis = 'both')
+    plt.xticks(rotation=65, horizontalalignment='right')
+    
+    plt.plot_date(x, data_set['rsi'], fmt='-', marker = ' ' )
+    
+    plt.axhline(y=upper_limit, color='r', linestyle='--', label='Overbought (70)')
+    plt.axhline(y=lower_limit, color='g', linestyle='--', label='Oversold (30)')
+
+
+
+
+
+  
+    filename = data_set_id + "/ma-macd.png"
+
+    plt.savefig(filename)
+    plt.clf()
+
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
 
 
 
 
 
 all_time = gen_all_time('P1.csv')
-
-
-
-
-
-
+all_time.update(gen_best_fit(all_time))
+    
 
 
 each_year = gen_each_year(all_time)
 
 
-
-
-
-
 all_time_high = gen_all_time_high(all_time)
 
+
+time_frame_stats = gen_time_frame_stats(all_time)
 
 
 
@@ -308,22 +468,12 @@ for item in all_time_high :
 
 
 
-
-
-
-
-
-
-
-
-
-
 print()
 print()
 print("yearly stats")
 print()
 print("------------+------------------+------------------+--------------------+-------------+")
-print("        year|             slope|                r2|    percent increase|   total days|")
+print("        year|             slope|                r2|          % increase|   total days|")
 print("------------+------------------+------------------+--------------------+-------------+")
 
 
@@ -342,7 +492,7 @@ for year in each_year:
         each_year[year]['percent_increase'],
         len(each_year[year]['y_values'])
     ))
-        
+  
 
 
 
@@ -351,12 +501,11 @@ print()
 print("time frame stats")
 print()
 print("------------+------------------+------------------+--------------------+-------------+")
-print("  time frame|             slope|                r2|    percent increase|      daily %|")
+print("  time frame|             slope|                r2|          % increase|      daily %|")
 print("------------+------------------+------------------+--------------------+-------------+")
 
 
 
-time_frame_stats = gen_time_frame_stats(all_time)
 
 for time_frame in time_frame_stats: 
 
@@ -377,277 +526,48 @@ for time_frame in time_frame_stats:
 
 
 
-x_values = all_time['x_values']
-y_values = all_time['y_values']
+
+
+print()
+print("generating charts")
+
+print("all_time")
+
+if not os.path.exists("all_time"):
+    os.makedirs("all_time")
+
+
+gen_best_fit_ma_chart("all_time", all_time)
+
+gen_ma_macd_rsi_chart("all_time", all_time)
+    
+
 
 
 
 
 for year in each_year:
     
-   
 
-    average_y_5 = each_year[year]['average_y_5']
-    average_y_20 = each_year[year]['average_y_20']
-    average_y_60 = each_year[year]['average_y_60']
-    
-    
-    average_y_5_20 = each_year[year]['average_y_5_20']  
-    average_y_5_60 = each_year[year]['average_y_5_60'] 
-    average_y_20_60 = each_year[year]['average_y_20_60']
-    
-    rsi = each_year[year]['rsi']
-    
-    
-#    
-#    x = np.array(converted_dates)
-#    y = np.array(each_year[year]['y_values'])
-#
-#    
-#    average_y_5 = np.array(each_year[year]['average_y_5'])
-#    average_y_20 = np.array(each_year[year]['average_y_20'])
-#    average_y_60 = np.array(each_year[year]['average_y_60'])
-#    
-#    
-#    average_y_5_20 = np.array(each_year[year]['average_y_5_20'])    
-#    average_y_5_60 = np.array(each_year[year]['average_y_5_60'])    
-#    average_y_20_60 = np.array(each_year[year]['average_y_20_60'])  
-#    
-#    rsi = np.array(each_year[year]['rsi'])
-#    
-    
-    
-    
-    converted_dates = datestr2num([ datetime.strptime(day, '%Y-%m-%d').strftime('%m/%d/%Y') for day in each_year[year]['x_values'] ]) 
-
-
-    x = converted_dates
-    y = each_year[year]['y_values']
-
-    
-    
-    best_fit = each_year[year]['best_fit_line']
-    
-    theta_fit_2 = each_year[year]['theta_fit_list_2']
-
-    
+    print(year)
     
     if not os.path.exists(year):
         os.makedirs(year)
 
     
     
-    
-    f = plt.figure()
-    f.set_figheight(20)
-    f.set_figwidth(40)
+    gen_best_fit_ma_chart(year, each_year[year])
 
-#
-# each year chart 1
-# value and ma
-#
-
-
-
-
-    plt.subplot(2, 1, 1)
-    plt.title(year)
-    
-    plt.plot_date( x, y, fmt='-', marker = ' ' , label='Value')
-    plt.plot_date( x, best_fit, fmt='-', marker = ' ' , label='linear')
-    plt.plot_date( x, theta_fit_2, fmt='-', marker = ' ' , label='poly 2')      
-    
-    plt.legend()
-    plt.grid(axis = 'both')
-    plt.xticks(rotation=65, horizontalalignment='right')
-
-
-
-
-
-
-
-    plt.subplot(2, 1, 2)
-    plt.title(year + " - Value")
-
-
-    
-    plt.plot_date( x, y, fmt='-', marker = ' ' , label='Value')
-
-    plt.plot_date(x, average_y_5 , fmt='--', marker = ' ' , color='orange' , label='Running average 5')
-    plt.plot_date(x, average_y_20, fmt='--', marker = ' ' , color='green' , label='Running average 20')
-    plt.plot_date(x, average_y_60, fmt='--', marker = ' ' , color='red' , label='Running average 60')
+    gen_ma_macd_rsi_chart(year, each_year[year])
     
     
-    
-    
-    
-    plt.legend()
-    plt.grid(axis = 'both')
-    plt.xticks(rotation=65, horizontalalignment='right')
+   
 
-
-
-    filename = year + "/value-ma.png"
-
-    plt.savefig(filename)
-    plt.clf()
-    
-    
-
-#
-# each year chart 2
-# ma , macd , rsi
-#
-
-
-
-
-    plt.subplot(3, 1, 1)
-    plt.title(year + " - MA")
-
-
-    plt.grid(axis = 'both')
-    plt.xticks(rotation=65, horizontalalignment='right')
-
-
-    plt.plot_date(x, average_y_5 , fmt='--', marker = ' ' , color='orange' , label='Running average 5')
-    plt.plot_date(x, average_y_20, fmt='--', marker = ' ' , color='green' , label='Running average 20')
-    plt.plot_date(x, average_y_60, fmt='--', marker = ' ' , color='red' , label='Running average 60')
-
-    plt.legend()
-
-
-
-
-    plt.subplot(3, 1, 2)
-    plt.title(year + " - MACD")
-
-
-    plt.grid(axis = 'both')
-    plt.xticks(rotation=65, horizontalalignment='right')
-
-    plt.plot_date(x, average_y_5_20, fmt='--', marker = ' ' , color='green' , label='Running average 5 - 20')
-#    plt.plot_date(x, average_y_5_60, fmt='--', marker = ' ' , color='orange' , label='Running average 5 - 60')
-    plt.plot_date(x, average_y_20_60, fmt='--', marker = ' ' , color='red' , label='Running average 20 - 60')
-
-    plt.legend()
-
-
-
-
-
-
-
-
-    plt.subplot(3, 1, 3)
-    plt.title(year + " - RSI")
-
-
-    upper_limit = 70
-    lower_limit = 30
-
-    #plt.figure(figsize=(10, 6))
-    plt.grid(axis = 'both')
-    plt.xticks(rotation=65, horizontalalignment='right')
-    
-    plt.plot_date(x, rsi, fmt='-', marker = ' ' )
-    
-    plt.axhline(y=upper_limit, color='r', linestyle='--', label='Overbought (70)')
-    plt.axhline(y=lower_limit, color='g', linestyle='--', label='Oversold (30)')
-
-
-
-
-
-  
-    filename = year + "/ma-macd.png"
-
-    plt.savefig(filename)
-    plt.clf()
-
-    
-    
-    
-    
-    
 
 
 
     
     
-    
-    
-    
-#
-# create all time charts 
-#    
-    
-
-
-
-
-converted_dates = datestr2num([ datetime.strptime(day, '%Y-%m-%d').strftime('%m/%d/%Y') for day in x_values ]) 
-
-
-
-
-x_points = np.array(converted_dates)
-y_points = np.array(y_values)
-
-
-average_y_5 = moving_average(5 ,y_points)
-average_y_20 = moving_average(20 ,y_points)
-average_y_60 = moving_average(60 ,y_points)
-
-
-
-
-
-
-f = plt.figure()
-f.set_figheight(10)
-f.set_figwidth(25)
-
-plt.subplot(2, 1, 1)
-plt.title("Value")
-
-
-
-plt.plot_date( x_points, y_points , fmt='-', marker = ' ' )
-
-plt.plot_date(x_points, average_y_5 , fmt='--', marker = ' ' , label='Running average 5')
-plt.plot_date(x_points, average_y_20, fmt='--', marker = ' ' , label='Running average 20')
-plt.plot_date(x_points, average_y_60, fmt='--', marker = ' ' , label='Running average 60')
-
-plt.legend()
-plt.xticks(rotation=65, horizontalalignment='right')
-plt.grid(axis = 'both')
-
-plt.subplot(2, 1, 2)
-plt.title("MA")
-plt.plot_date(x_points, average_y_5 , fmt='--', marker = ' ' , label='Running average 5')
-plt.plot_date(x_points, average_y_20, fmt='--', marker = ' ' , label='Running average 20')
-plt.plot_date(x_points, average_y_60, fmt='--', marker = ' ' , label='Running average 60')
-
-
-
-plt.legend()
-
-plt.grid(axis = 'both')
-plt.xticks(rotation=65, horizontalalignment='right')
-
-
-plt.savefig('chart1.png')
-plt.clf()
-
-
-
-
-
-
-
-
 
 #
 # Generate pdf file 
@@ -657,8 +577,8 @@ plt.clf()
 
 pdf = fpdf(orientation="P", unit="mm", format="A4")
  
-
-
+print()
+print("pdf report")
 
 pdf.add_page()
 pdf.set_font("helvetica", "B", 20)
@@ -673,7 +593,7 @@ pdf.cell(0, 10, "Generated " ,align='R' )
 pdf.ln()
 
 pdf.set_font("helvetica", "", 12)
-pdf.cell(0, 10, x_values[-1] , align='L' )
+pdf.cell(0, 10, all_time['x_values'][-1] , align='L' )
 pdf.cell(0, 10, time.strftime("%Y-%m-%d %H:%M") , align='R' )
 
 pdf.ln(20)
@@ -702,17 +622,21 @@ for year in each_year:
 
 
 
+print("pdf charts")
+print("all_time")
 
 
 pdf.add_page()
+pdf.image('all_time/value-ma.png', w = 200 , h = 250)    
 
-pdf.image('chart1.png', w = 200 , h = 250)    
 
-
+pdf.add_page()
+pdf.image( 'all_time/ma-macd.png', w = 200 , h = 250)    
 
 
 
 for year in each_year:
+
     print(year)
     pdf.add_page()
 
@@ -726,19 +650,6 @@ for year in each_year:
 
     pdf.add_page()
     pdf.image(year + '/ma-macd.png', w = 200 , h = 250)    
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 
