@@ -29,86 +29,170 @@ def moving_average(window, inputValue):
 
 
 
+def gen_all_time(file):
+    
+    all_time = {}
+
+    all_time['x_values'] = []
+    all_time['y_values'] = []    
 
 
-x_values = []
-y_values = []
-
-each_year = {}
 
 
+    with open(file, newline='') as csvfile:
+
+    #with open('Net Worth.csv', newline='') as csvfile:
+
+        reader = csv.reader(csvfile)
+
+        for row in reader:
+            if row[1] != "" and row[1] != "Date":
+
+
+                all_time['x_values'].append(row[1].split(" ")[0])
+                all_time['y_values'].append(float(row[2]))
+               
 
 
 
-with open('P1.csv', newline='') as csvfile:
 
-#with open('Net Worth.csv', newline='') as csvfile:
+        all_time['average_y_5'] = moving_average(5 ,all_time['y_values'])
+        all_time['average_y_20'] = moving_average(20 ,all_time['y_values'])
+        all_time['average_y_60'] = moving_average(60 ,all_time['y_values'])
 
-    reader = csv.reader(csvfile)
 
-    for row in reader:
-        if row[1] != "" and row[1] != "Date":
 
-            #print(row[1].split(" ")[0],row[2])
-            x_values.append(row[1].split(" ")[0])
-            y_values.append(float(row[2]))
+        df = pd.DataFrame({'Actual': all_time['y_values']})
+
+        all_time['rsi'] = list(ta.momentum.RSIIndicator(df['Actual']).rsi())
+        
+        
+        
+        
+    return all_time
+
+
+
+def gen_each_year(all_time):
+
+    each_year = {}
+
+    for index, value in enumerate(all_time['y_values']) :
+
+        year =x_values[index].split(" ")[0].split("-")[0]
+        
+        if year not in each_year:
+            each_year[year] = {}
+
+            each_year[year]['x_values'] = []
+            each_year[year]['y_values'] = []
             
-
-
-
-            if row[1].split(" ")[0].split("-")[0] not in each_year:
-                each_year[row[1].split(" ")[0].split("-")[0]] = {}
-
-                each_year[row[1].split(" ")[0].split("-")[0]]['x_values'] = [row[1].split(" ")[0]]
-                each_year[row[1].split(" ")[0].split("-")[0]]['y_values'] = [float(row[2])]
-                each_year[row[1].split(" ")[0].split("-")[0]]['average_y_5'] = []
-                each_year[row[1].split(" ")[0].split("-")[0]]['average_y_20'] = []
-                each_year[row[1].split(" ")[0].split("-")[0]]['average_y_60'] = []
-                
-                each_year[row[1].split(" ")[0].split("-")[0]]['average_y_5_20'] = []
-                each_year[row[1].split(" ")[0].split("-")[0]]['average_y_5_60'] = []                
-                each_year[row[1].split(" ")[0].split("-")[0]]['average_y_20_60'] = []                
-                
-                each_year[row[1].split(" ")[0].split("-")[0]]['rsi'] = []   
-
-                
-            else:
-                each_year[row[1].split(" ")[0].split("-")[0]]['x_values'].append(row[1].split(" ")[0])
-                each_year[row[1].split(" ")[0].split("-")[0]]['y_values'].append(float(row[2]))
-                
-                
-                
-                
+            each_year[year]['average_y_5'] = []
+            each_year[year]['average_y_20'] = []
+            each_year[year]['average_y_60'] = []
             
-    average_y_5 = moving_average(5 ,y_values)
-    average_y_20 = moving_average(20 ,y_values)
-    average_y_60 = moving_average(60 ,y_values)
+            each_year[year]['average_y_5_20'] = []
+            each_year[year]['average_y_5_60'] = []                
+            each_year[year]['average_y_20_60'] = []                
+            
+            each_year[year]['rsi'] = []   
 
 
-
-    df = pd.DataFrame({'Actual': y_values})
-
-    rsi = ta.momentum.RSIIndicator(df['Actual']).rsi()
-
-
-
-    for i in range(len(x_values)) :
-        year =x_values[i].split(" ")[0].split("-")[0]
+        each_year[year]['x_values'].append(x_values[index])
+        each_year[year]['y_values'].append(value)
         
+        each_year[year]['average_y_5'].append(average_y_5[index])
+        each_year[year]['average_y_20'].append(average_y_20[index])
+        each_year[year]['average_y_60'].append(average_y_60[index])
         
-        each_year[year]['average_y_5'].append(average_y_5[i])
-        each_year[year]['average_y_20'].append(average_y_20[i])
-        each_year[year]['average_y_60'].append(average_y_60[i])
+        each_year[year]['average_y_5_20'].append(average_y_5[index] - average_y_20[index])
+        each_year[year]['average_y_5_60'].append(average_y_5[index] - average_y_60[index])
+        each_year[year]['average_y_20_60'].append(average_y_20[index] - average_y_60[index])    
         
-        each_year[year]['average_y_5_20'].append(average_y_5[i] - average_y_20[i])
-        each_year[year]['average_y_5_60'].append(average_y_5[i] - average_y_60[i])
-        each_year[year]['average_y_20_60'].append(average_y_20[i] - average_y_60[i])        
-        each_year[year]['rsi'].append(rsi[i])
+        each_year[year]['rsi'].append(rsi[index])
+
+
+    return each_year
 
 
 
-all_time_high = 0
-cycle_low = y_values[0]
+def gen_all_time_high(all_time):
+
+    all_time_high = []
+    
+    cycle_high = 0
+    cycle_low = y_values[0]
+
+ 
+    for index, value in enumerate(y_values) :
+
+        if value > cycle_high : 
+            
+            if cycle_high != cycle_low and index != 0 and cycle_low_index - cycle_high_index > 2:
+                item = {}
+                
+                
+                item['date'] = x_values[cycle_high_index] 
+                item['cycle_high'] = round(cycle_high,3)
+                item['cycle_low'] = cycle_low 
+                item['difference'] = round(cycle_high - cycle_low ,3) 
+                item['days'] = cycle_low_index - cycle_high_index 
+                item['percent'] = round((((cycle_high - cycle_low)/cycle_high)*100),3)
+                
+                all_time_high.append(item)
+                
+                
+                
+            cycle_high_index = index
+            cycle_high = value
+            cycle_low = value
+            
+        elif value < cycle_high and value < cycle_low : 
+            
+            cycle_low = value
+            cycle_low_index = index 
+    
+    
+    return all_time_high
+
+
+
+
+
+
+
+
+
+
+all_time = gen_all_time('P1.csv')
+
+
+
+
+x_values = all_time['x_values']
+y_values = all_time['y_values']
+
+
+average_y_5 = all_time['average_y_5']
+average_y_20 = all_time['average_y_20']
+average_y_60 = all_time['average_y_60']
+
+rsi = all_time['rsi']
+
+
+
+
+each_year = gen_each_year(all_time)
+
+
+
+
+
+
+all_time_high = gen_all_time_high(all_time)
+
+
+
 
 print("high low cycle")
 print()
@@ -116,32 +200,33 @@ print("------------+------------------+------------------+--------------+-------
 print("        date|     all time high|      all time low|    difference|    days|   percent|")
 print("------------+------------------+------------------+--------------+--------+----------+")
 
-for index, value in enumerate(y_values) :
 
-    if value > all_time_high : 
-        
-        if all_time_high != cycle_low and index != 0 and cycle_low_index - all_time_high_index > 2:
-        
-            print('{0:>12s}|  {1:>16.2f}|  {2:>16.2f}|  {3:>12.2f}|  {4:6}|  {5:>8.2f}|'.format(
-            
-            x_values[all_time_high_index] , 
-            round(all_time_high,3) , 
-            cycle_low , 
-            round(all_time_high - cycle_low ,3) , 
-            cycle_low_index - all_time_high_index , 
-            round((((all_time_high - cycle_low)/all_time_high)*100),3))
-            
-            )
-            
-        all_time_high_index = index
-        all_time_high = value
-        cycle_low = value
-        
-    elif value < all_time_high and value < cycle_low : 
-        
-        cycle_low = value
-        cycle_low_index = index 
-        
+for item in all_time_high :
+
+
+    print('{0:>12s}|  {1:>16.2f}|  {2:>16.2f}|  {3:>12.2f}|  {4:6}|  {5:>8.2f}|'.format(
+    
+    item['date'] , 
+    item['cycle_high'] , 
+    item['cycle_low'] , 
+    item['difference'] , 
+    item['days'] , 
+    item['percent']
+    
+    ))
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 print()
 print()
