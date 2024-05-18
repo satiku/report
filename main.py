@@ -403,6 +403,7 @@ for year in each_year:
 
 #
 # each year chart 1
+# value and ma
 #
 
 
@@ -455,6 +456,7 @@ for year in each_year:
 
 #
 # each year chart 2
+# ma , macd , rsi
 #
 
 
@@ -505,7 +507,7 @@ for year in each_year:
     lower_limit = 30
 
     #plt.figure(figsize=(10, 6))
-    plt.grid(axis = 'y')
+    plt.grid(axis = 'both')
     plt.xticks(rotation=65, horizontalalignment='right')
     
     plt.plot_date(x, rsi, fmt='-', marker = ' ' )
