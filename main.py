@@ -28,7 +28,6 @@ def moving_average(window, inputValue):
 
 
 
-
 def gen_all_time(file):
     
     all_time = {}
@@ -157,6 +156,71 @@ def gen_all_time_high(all_time):
 
 
 
+def gen_best_fit(data_set):
+
+    best_fit = {}
+
+
+
+    converted_dates = datestr2num([ datetime.strptime(day, '%Y-%m-%d').strftime('%m/%d/%Y') for day in data_set['x_values'] ]) 
+
+
+    x = converted_dates
+    y = data_set['y_values']
+    
+    
+    
+    sst = sum([(day - np.average(y))**2 for day in y ])
+
+    m_b,ssr , _, _, _ = np.polyfit(np.array(range(len(x))), y, 1,full="true")
+
+    m = m_b[0]
+    b = m_b[1]
+    ssr =ssr[0]
+    
+    r2 = 1 -(ssr/sst)
+    
+    theta_2 = np.polyfit(np.array(range(len(x))), y, 2)
+    
+    
+    
+    percent_increase = ((y[-1] - y[0])/y[0])*100
+    
+
+
+    
+    best_fit_line = []
+    theta_fit_list_2 =[]
+
+    
+    for i in range(len(data_set['x_values'])):
+
+        best_fit_line.append(m*i+b)
+        
+        
+        z_2 = np.poly1d(theta_2)
+        
+        theta_fit_list_2.append(z_2(i))
+    
+
+    
+    best_fit['slope'] = round(m, 3)
+    best_fit['r2'] = round(r2, 3)
+    best_fit['percent_increase'] = round(percent_increase, 3)
+    
+    best_fit['best_fit_line'] = best_fit_line
+    best_fit['theta_fit_list_2'] = theta_fit_list_2   
+    
+    
+    return(best_fit)
+
+
+
+
+
+
+
+
 
 
 
@@ -239,91 +303,97 @@ print("------------+------------------+------------------+--------------------+-
 
 for year in each_year:
     
-    if not os.path.exists(year):
-        os.makedirs(year)
+    
+    each_year[year].update(gen_best_fit(each_year[year]))
+    
 
 
+    print('{0:>12s}|  {1:>16.2f}|  {2:>16.3f}|  {3:>18.2f}|  {4:11}|'.format(
     
-    
-    converted_dates = datestr2num([ datetime.strptime(day, '%Y-%m-%d').strftime('%m/%d/%Y') for day in each_year[year]['x_values'] ]) 
-
-
-    x = np.array(converted_dates)
-    y = np.array(each_year[year]['y_values'])
-
-    
-    average_y_5 = np.array(each_year[year]['average_y_5'])
-    average_y_20 = np.array(each_year[year]['average_y_20'])
-    average_y_60 = np.array(each_year[year]['average_y_60'])
-    
-    
-    average_y_5_20 = np.array(each_year[year]['average_y_5_20'])    
-    average_y_5_60 = np.array(each_year[year]['average_y_5_60'])    
-    average_y_20_60 = np.array(each_year[year]['average_y_20_60'])  
-    
-    rsi = np.array(each_year[year]['rsi'])
-    
-    
-    sst = sum([(day - np.average(y))**2 for day in y ])
-
-    m_b,ssr , _, _, _ = np.polyfit(np.array(range(len(x))), y, 1,full="true")
-
-    m = m_b[0]
-    b = m_b[1]
-    ssr =ssr[0]
-    
-    r2 = 1 -(ssr/sst)
-    
-    theta_2 = np.polyfit(np.array(range(len(x))), y, 2)
-
-    if year != list(each_year.items())[-1][0] : 
-        print('{0:>12s}|  {1:>16.2f}|  {2:>16.3f}|  {3:>18.2f}|  {4:11}|'.format(
+        year, 
+        each_year[year]['slope'], 
+        each_year[year]['r2'],
+        each_year[year]['percent_increase'],
+        len(each_year[year]['y_values'])
+    ))
         
-            year, 
-            m, 
-            round(r2, 3),
-            ((y[-1] - y[0])/y[0])*100,
-            len(y)
-        ))
-        
-    elif year == list(each_year.items())[-1][0] : 
+
+
+
+    if year == list(each_year.items())[-1][0] : 
     
     
-        print('    ytd-{0:s}|  {1:>16.2f}|  {2:>16.3f}|  {3:>18.2f}|  {4:11}|'.format(
-        
-            year, 
-            m, 
-            round(r2, 3),
-            ((y[-1] - y[0])/y[0])*100,
-            len(y)
-        ))    
-    
-    
+
         print()
         print("last 12m")
         print((y_values[-1] - y_values[-250])/y_values[-250])
         print(250)        
     
-    each_year[year]['linear_slop'] = round(m, 3)
-    each_year[year]['r2'] = round(r2, 3)
+
+
+
+
+
+
+
+
+
+
+
+
+
+for year in each_year:
     
-    best_fit_list = []
-    theta_fit_list_2 =[]
+   
+
+    average_y_5 = each_year[year]['average_y_5']
+    average_y_20 = each_year[year]['average_y_20']
+    average_y_60 = each_year[year]['average_y_60']
+    
+    
+    average_y_5_20 = each_year[year]['average_y_5_20']  
+    average_y_5_60 = each_year[year]['average_y_5_60'] 
+    average_y_20_60 = each_year[year]['average_y_20_60']
+    
+    rsi = each_year[year]['rsi']
+    
+    
+#    
+#    x = np.array(converted_dates)
+#    y = np.array(each_year[year]['y_values'])
+#
+#    
+#    average_y_5 = np.array(each_year[year]['average_y_5'])
+#    average_y_20 = np.array(each_year[year]['average_y_20'])
+#    average_y_60 = np.array(each_year[year]['average_y_60'])
+#    
+#    
+#    average_y_5_20 = np.array(each_year[year]['average_y_5_20'])    
+#    average_y_5_60 = np.array(each_year[year]['average_y_5_60'])    
+#    average_y_20_60 = np.array(each_year[year]['average_y_20_60'])  
+#    
+#    rsi = np.array(each_year[year]['rsi'])
+#    
+    
+    
+    
+    converted_dates = datestr2num([ datetime.strptime(day, '%Y-%m-%d').strftime('%m/%d/%Y') for day in each_year[year]['x_values'] ]) 
+
+
+    x = converted_dates
+    y = each_year[year]['y_values']
 
     
-    for i in range(len(each_year[year]['x_values'])):
-
-        best_fit_list.append(m*i+b)
-        z_2 = np.poly1d(theta_2)
-        
-        theta_fit_list_2.append(z_2(i))
     
-    best_fit = np.array(best_fit_list)
+    best_fit = each_year[year]['best_fit_line']
     
-    theta_fit_2 = np.array(theta_fit_list_2)
+    theta_fit_2 = each_year[year]['theta_fit_list_2']
 
     
     
+    if not os.path.exists(year):
+        os.makedirs(year)
+
     
     
     
@@ -576,7 +646,7 @@ pdf.ln()
 for year in each_year:
     pdf.set_font("helvetica", "", 12)
     pdf.cell(30, 10, year )
-    pdf.cell(30, 10, str(each_year[year]['linear_slop']) )
+    pdf.cell(30, 10, str(each_year[year]['slope']) )
     pdf.cell(30, 10, str(each_year[year]['r2']) )
     
     pdf.ln()
