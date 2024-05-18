@@ -143,9 +143,16 @@ for index, value in enumerate(y_values) :
         cycle_low_index = index 
         
 
+print()
+print()
+print("yearly stats")
+print()
+print("------------+------------------+------------------+--------------------+-------------+")
+print("        year|             slope|                r2|    percent increase|   total days|")
+print("------------+------------------+------------------+--------------------+-------------+")
+
+
 for year in each_year:
-    print()
-    print(year)
     
     if not os.path.exists(year):
         os.makedirs(year)
@@ -181,15 +188,34 @@ for year in each_year:
     ssr =ssr[0]
     
     r2 = 1 -(ssr/sst)
-    print(round(r2, 3))
     
     theta_2 = np.polyfit(np.array(range(len(x))), y, 2)
 
     if year != list(each_year.items())[-1][0] : 
-    
-        print((y[-1] - y[0])/y[0])
-        print(len(y))
+        print('{0:>12s}|  {1:>16.2f}|  {2:>16.3f}|  {3:>18.2f}|  {4:11}|'.format(
+        
+            year, 
+            m, 
+            round(r2, 3),
+            ((y[-1] - y[0])/y[0])*100,
+            len(y)
+        ))
+        
     elif year == list(each_year.items())[-1][0] : 
+    
+    
+        print('    ytd-{0:s}|  {1:>16.2f}|  {2:>16.3f}|  {3:>18.2f}|  {4:11}|'.format(
+        
+            year, 
+            m, 
+            round(r2, 3),
+            ((y[-1] - y[0])/y[0])*100,
+            len(y)
+        ))    
+    
+    
+        print()
+        print("last 12m")
         print((y_values[-1] - y_values[-250])/y_values[-250])
         print(250)        
     
