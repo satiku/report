@@ -78,7 +78,7 @@ def gen_each_year(all_time):
 
     for index, value in enumerate(all_time['y_values']) :
 
-        year =x_values[index].split(" ")[0].split("-")[0]
+        year =all_time['x_values'][index].split(" ")[0].split("-")[0]
         
         if year not in each_year:
             each_year[year] = {}
@@ -97,18 +97,18 @@ def gen_each_year(all_time):
             each_year[year]['rsi'] = []   
 
 
-        each_year[year]['x_values'].append(x_values[index])
+        each_year[year]['x_values'].append(all_time['x_values'][index])
         each_year[year]['y_values'].append(value)
         
-        each_year[year]['average_y_5'].append(average_y_5[index])
-        each_year[year]['average_y_20'].append(average_y_20[index])
-        each_year[year]['average_y_60'].append(average_y_60[index])
+        each_year[year]['average_y_5'].append(all_time['average_y_5'][index])
+        each_year[year]['average_y_20'].append(all_time['average_y_20'][index])
+        each_year[year]['average_y_60'].append(all_time['average_y_60'][index])
         
-        each_year[year]['average_y_5_20'].append(average_y_5[index] - average_y_20[index])
-        each_year[year]['average_y_5_60'].append(average_y_5[index] - average_y_60[index])
-        each_year[year]['average_y_20_60'].append(average_y_20[index] - average_y_60[index])    
+        each_year[year]['average_y_5_20'].append(all_time['average_y_5'][index] - all_time['average_y_20'][index])
+        each_year[year]['average_y_5_60'].append(all_time['average_y_5'][index] - all_time['average_y_60'][index])
+        each_year[year]['average_y_20_60'].append(all_time['average_y_20'][index] - all_time['average_y_60'][index])    
         
-        each_year[year]['rsi'].append(rsi[index])
+        each_year[year]['rsi'].append(all_time['rsi'][index])
 
 
     return each_year
@@ -120,10 +120,10 @@ def gen_all_time_high(all_time):
     all_time_high = []
     
     cycle_high = 0
-    cycle_low = y_values[0]
+    cycle_low = all_time['y_values'][0]
 
  
-    for index, value in enumerate(y_values) :
+    for index, value in enumerate(all_time['y_values']) :
 
         if value > cycle_high : 
             
@@ -131,7 +131,7 @@ def gen_all_time_high(all_time):
                 item = {}
                 
                 
-                item['date'] = x_values[cycle_high_index] 
+                item['date'] = all_time['x_values'][cycle_high_index] 
                 item['cycle_high'] = round(cycle_high,3)
                 item['cycle_low'] = cycle_low 
                 item['difference'] = round(cycle_high - cycle_low ,3) 
@@ -216,10 +216,45 @@ def gen_best_fit(data_set):
 
 
 
+def gen_time_frame_stats(all_time):
+    
+    
+    time_frame_stats = {} 
+
+    time_frame_stats['5'] = {}   
+    time_frame_stats['20'] = {}
+    time_frame_stats['60'] = {}
+    time_frame_stats['250'] = {}
 
 
 
+    
+    y_values = all_time['y_values']
+    
+    
+    
+    for time_frame in time_frame_stats :
+    
+        time_frame_stats[time_frame]['percent_increase'] = round((((y_values[-1] - y_values[-1*int(time_frame)])/y_values[-1*int(time_frame)])*100), 3)
+        time_frame_stats[time_frame]['daily_percent_increase'] =round((((y_values[-1] - y_values[-1*int(time_frame)])/y_values[-1*int(time_frame)])*100)/int(time_frame), 3)
 
+        m_b,ssr , _, _, _ = np.polyfit(np.array(range(len(y_values[(-1* int(time_frame)):]))), y_values[(-1* int(time_frame)):], 1,full="true")
+
+        sst = sum([(day - np.average(y_values[(-1* int(time_frame)):]))**2 for day in y_values[(-1* int(time_frame)):] ])
+
+        ssr =ssr[0]
+        
+        
+        m = m_b[0]        
+        r2 = 1 -(ssr/sst)
+        
+        time_frame_stats[time_frame]['slope'] = round(m, 3)
+        time_frame_stats[time_frame]['r2'] = round(r2, 3)
+        
+    
+        
+    return(time_frame_stats)
+    
 
 
 
@@ -233,15 +268,6 @@ all_time = gen_all_time('P1.csv')
 
 
 
-x_values = all_time['x_values']
-y_values = all_time['y_values']
-
-
-average_y_5 = all_time['average_y_5']
-average_y_20 = all_time['average_y_20']
-average_y_60 = all_time['average_y_60']
-
-rsi = all_time['rsi']
 
 
 
@@ -270,12 +296,12 @@ for item in all_time_high :
 
     print('{0:>12s}|  {1:>16.2f}|  {2:>16.2f}|  {3:>12.2f}|  {4:6}|  {5:>8.2f}|'.format(
     
-    item['date'] , 
-    item['cycle_high'] , 
-    item['cycle_low'] , 
-    item['difference'] , 
-    item['days'] , 
-    item['percent']
+        item['date'] , 
+        item['cycle_high'] , 
+        item['cycle_low'] , 
+        item['difference'] , 
+        item['days'] , 
+        item['percent']
     
     ))
 
@@ -320,24 +346,39 @@ for year in each_year:
 
 
 
-    if year == list(each_year.items())[-1][0] : 
+print()
+print()
+print("time frame stats")
+print()
+print("------------+------------------+------------------+--------------------+-------------+")
+print("  time frame|             slope|                r2|    percent increase|      daily %|")
+print("------------+------------------+------------------+--------------------+-------------+")
+
+
+
+time_frame_stats = gen_time_frame_stats(all_time)
+
+for time_frame in time_frame_stats: 
+
     
+    print('{0:>12s}|  {1:>16.2f}|  {2:>16.3f}|  {3:>18.2f}|  {4:11.2f}|'.format(
     
-
-        print()
-        print("last 12m")
-        print((y_values[-1] - y_values[-250])/y_values[-250])
-        print(250)        
-    
-
-
-
+        time_frame, 
+        time_frame_stats[time_frame]['slope'], 
+        time_frame_stats[time_frame]['r2'],
+        time_frame_stats[time_frame]['percent_increase'],
+        time_frame_stats[time_frame]['daily_percent_increase']
+    ))
+        
 
 
 
 
 
 
+
+x_values = all_time['x_values']
+y_values = all_time['y_values']
 
 
 
