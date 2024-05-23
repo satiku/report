@@ -392,20 +392,20 @@ def gen_ma_macd_rsi_chart(data_set_id, data_set):
     plt.title(data_set_id + " - RSI")
 
 
-    upper_limit = 70
-    lower_limit = 30
+    upper_limit = 80
+    lower_limit = 40
 
     #plt.figure(figsize=(10, 6))
     plt.grid(axis = 'both')
     plt.xticks(rotation=65, horizontalalignment='right')
     
-    plt.plot_date(x, data_set['rsi'], fmt='-', marker = ' ' )
+    plt.plot_date(x, data_set['rsi'], fmt='-', marker = ' ', label='rsi' )
     
-    plt.axhline(y=upper_limit, color='r', linestyle='--', label='Overbought (70)')
-    plt.axhline(y=lower_limit, color='g', linestyle='--', label='Oversold (30)')
+    plt.axhline(y=upper_limit, color='r', linestyle='--', label='Overbought (80)')
+    plt.axhline(y=lower_limit, color='g', linestyle='--', label='Oversold (40)')
 
 
-
+    plt.legend()
 
 
   
