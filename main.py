@@ -28,155 +28,152 @@ def moving_average(window, inputValue):
 
 
 
+def gen_all_time(file):
+    
+    all_time = {}
+
+    all_time['x_values'] = []
+    all_time['y_values'] = []    
+
+    all_time['average_y_5_20'] = []
+    all_time['average_y_5_60'] = []                
+    all_time['average_y_20_60'] = []
+
+
+    with open(file, newline='') as csvfile:
+
+    #with open('Net Worth.csv', newline='') as csvfile:
+
+        reader = csv.reader(csvfile)
+
+        for row in reader:
+            if row[1] != "" and row[1] != "Date":
+
+
+                all_time['x_values'].append(row[1].split(" ")[0])
+                all_time['y_values'].append(float(row[2]))
+               
 
 
 
-x_values = []
-y_values = []
 
-each_year = {}
+        all_time['average_y_5'] = moving_average(5 ,all_time['y_values'])
+        all_time['average_y_20'] = moving_average(20 ,all_time['y_values'])
+        all_time['average_y_60'] = moving_average(60 ,all_time['y_values'])
+
+        for index ,_ in enumerate(all_time['y_values']) :
+
+            all_time['average_y_5_20'].append(all_time['average_y_5'][index] - all_time['average_y_20'][index])
+            all_time['average_y_5_60'].append(all_time['average_y_5'][index] - all_time['average_y_60'][index])
+            all_time['average_y_20_60'].append(all_time['average_y_20'][index] - all_time['average_y_60'][index])    
+
+        df = pd.DataFrame({'Actual': all_time['y_values']})
+
+        all_time['rsi'] = list(ta.momentum.RSIIndicator(df['Actual']).rsi())
+        
+        
+        
+        
+    return all_time
 
 
 
+def gen_each_year(all_time):
 
+    each_year = {}
 
-with open('P1.csv', newline='') as csvfile:
+    for index, value in enumerate(all_time['y_values']) :
 
-#with open('Net Worth.csv', newline='') as csvfile:
+        year =all_time['x_values'][index].split(" ")[0].split("-")[0]
+        
+        if year not in each_year:
+            each_year[year] = {}
 
-    reader = csv.reader(csvfile)
-
-    for row in reader:
-        if row[1] != "" and row[1] != "Date":
-
-            #print(row[1].split(" ")[0],row[2])
-            x_values.append(row[1].split(" ")[0])
-            y_values.append(float(row[2]))
+            each_year[year]['x_values'] = []
+            each_year[year]['y_values'] = []
             
-
-
-
-            if row[1].split(" ")[0].split("-")[0] not in each_year:
-                each_year[row[1].split(" ")[0].split("-")[0]] = {}
-
-                each_year[row[1].split(" ")[0].split("-")[0]]['x_values'] = [row[1].split(" ")[0]]
-                each_year[row[1].split(" ")[0].split("-")[0]]['y_values'] = [float(row[2])]
-                each_year[row[1].split(" ")[0].split("-")[0]]['average_y_5'] = []
-                each_year[row[1].split(" ")[0].split("-")[0]]['average_y_20'] = []
-                each_year[row[1].split(" ")[0].split("-")[0]]['average_y_60'] = []
-                
-                each_year[row[1].split(" ")[0].split("-")[0]]['average_y_5_20'] = []
-                each_year[row[1].split(" ")[0].split("-")[0]]['average_y_5_60'] = []                
-                each_year[row[1].split(" ")[0].split("-")[0]]['average_y_20_60'] = []                
-                
-                each_year[row[1].split(" ")[0].split("-")[0]]['rsi'] = []   
-
-                
-            else:
-                each_year[row[1].split(" ")[0].split("-")[0]]['x_values'].append(row[1].split(" ")[0])
-                each_year[row[1].split(" ")[0].split("-")[0]]['y_values'].append(float(row[2]))
-                
-                
-                
-                
+            each_year[year]['average_y_5'] = []
+            each_year[year]['average_y_20'] = []
+            each_year[year]['average_y_60'] = []
             
-    average_y_5 = moving_average(5 ,y_values)
-    average_y_20 = moving_average(20 ,y_values)
-    average_y_60 = moving_average(60 ,y_values)
-
-
-
-    df = pd.DataFrame({'Actual': y_values})
-
-    rsi = ta.momentum.RSIIndicator(df['Actual']).rsi()
-
-
-
-    for i in range(len(x_values)) :
-        year =x_values[i].split(" ")[0].split("-")[0]
-        
-        
-        each_year[year]['average_y_5'].append(average_y_5[i])
-        each_year[year]['average_y_20'].append(average_y_20[i])
-        each_year[year]['average_y_60'].append(average_y_60[i])
-        
-        each_year[year]['average_y_5_20'].append(average_y_5[i] - average_y_20[i])
-        each_year[year]['average_y_5_60'].append(average_y_5[i] - average_y_60[i])
-        each_year[year]['average_y_20_60'].append(average_y_20[i] - average_y_60[i])        
-        each_year[year]['rsi'].append(rsi[i])
-
-
-
-all_time_high = 0
-cycle_low = y_values[0]
-
-print("high low cycle")
-print()
-print("------------+------------------+------------------+--------------+--------+----------+")
-print("        date|     all time high|      all time low|    difference|    days|   percent|")
-print("------------+------------------+------------------+--------------+--------+----------+")
-
-for index, value in enumerate(y_values) :
-
-    if value > all_time_high : 
-        
-        if all_time_high != cycle_low and index != 0 and cycle_low_index - all_time_high_index > 2:
-        
-            print('{0:>12s}|  {1:>16.2f}|  {2:>16.2f}|  {3:>12.2f}|  {4:6}|  {5:>8.2f}|'.format(
+            each_year[year]['average_y_5_20'] = []
+            each_year[year]['average_y_5_60'] = []                
+            each_year[year]['average_y_20_60'] = []                
             
-            x_values[all_time_high_index] , 
-            round(all_time_high,3) , 
-            cycle_low , 
-            round(all_time_high - cycle_low ,3) , 
-            cycle_low_index - all_time_high_index , 
-            round((((all_time_high - cycle_low)/all_time_high)*100),3))
+            each_year[year]['rsi'] = []   
+
+
+        each_year[year]['x_values'].append(all_time['x_values'][index])
+        each_year[year]['y_values'].append(value)
+        
+        each_year[year]['average_y_5'].append(all_time['average_y_5'][index])
+        each_year[year]['average_y_20'].append(all_time['average_y_20'][index])
+        each_year[year]['average_y_60'].append(all_time['average_y_60'][index])
+        
+        each_year[year]['average_y_5_20'].append(all_time['average_y_5'][index] - all_time['average_y_20'][index])
+        each_year[year]['average_y_5_60'].append(all_time['average_y_5'][index] - all_time['average_y_60'][index])
+        each_year[year]['average_y_20_60'].append(all_time['average_y_20'][index] - all_time['average_y_60'][index])    
+        
+        each_year[year]['rsi'].append(all_time['rsi'][index])
+
+
+    return each_year
+
+
+
+def gen_all_time_high(all_time):
+
+    all_time_high = []
+    
+    cycle_high = 0
+    cycle_low = all_time['y_values'][0]
+
+ 
+    for index, value in enumerate(all_time['y_values']) :
+
+        if value > cycle_high : 
             
-            )
+            if cycle_high != cycle_low and index != 0 and cycle_low_index - cycle_high_index > 2:
+                item = {}
+                
+                
+                item['date'] = all_time['x_values'][cycle_high_index] 
+                item['cycle_high'] = round(cycle_high,3)
+                item['cycle_low'] = cycle_low 
+                item['difference'] = round(cycle_high - cycle_low ,3) 
+                item['days'] = cycle_low_index - cycle_high_index 
+                item['percent'] = round((((cycle_high - cycle_low)/cycle_high)*100),3)
+                
+                all_time_high.append(item)
+                
+                
+                
+            cycle_high_index = index
+            cycle_high = value
+            cycle_low = value
             
-        all_time_high_index = index
-        all_time_high = value
-        cycle_low = value
-        
-    elif value < all_time_high and value < cycle_low : 
-        
-        cycle_low = value
-        cycle_low_index = index 
-        
-
-print()
-print()
-print("yearly stats")
-print()
-print("------------+------------------+------------------+--------------------+-------------+")
-print("        year|             slope|                r2|    percent increase|   total days|")
-print("------------+------------------+------------------+--------------------+-------------+")
-
-
-for year in each_year:
-    
-    if not os.path.exists(year):
-        os.makedirs(year)
-
-
+        elif value < cycle_high and value < cycle_low : 
+            
+            cycle_low = value
+            cycle_low_index = index 
     
     
-    converted_dates = datestr2num([ datetime.strptime(day, '%Y-%m-%d').strftime('%m/%d/%Y') for day in each_year[year]['x_values'] ]) 
+    return all_time_high
 
 
-    x = np.array(converted_dates)
-    y = np.array(each_year[year]['y_values'])
 
+def gen_best_fit(data_set):
+
+    best_fit = {}
+
+
+
+    converted_dates = datestr2num([ datetime.strptime(day, '%Y-%m-%d').strftime('%m/%d/%Y') for day in data_set['x_values'] ]) 
+
+
+    x = converted_dates
+    y = data_set['y_values']
     
-    average_y_5 = np.array(each_year[year]['average_y_5'])
-    average_y_20 = np.array(each_year[year]['average_y_20'])
-    average_y_60 = np.array(each_year[year]['average_y_60'])
-    
-    
-    average_y_5_20 = np.array(each_year[year]['average_y_5_20'])    
-    average_y_5_60 = np.array(each_year[year]['average_y_5_60'])    
-    average_y_20_60 = np.array(each_year[year]['average_y_20_60'])  
-    
-    rsi = np.array(each_year[year]['rsi'])
     
     
     sst = sum([(day - np.average(y))**2 for day in y ])
@@ -190,97 +187,144 @@ for year in each_year:
     r2 = 1 -(ssr/sst)
     
     theta_2 = np.polyfit(np.array(range(len(x))), y, 2)
+    
+    
+    
+    percent_increase = ((y[-1] - y[0])/y[0])*100
+    
 
-    if year != list(each_year.items())[-1][0] : 
-        print('{0:>12s}|  {1:>16.2f}|  {2:>16.3f}|  {3:>18.2f}|  {4:11}|'.format(
-        
-            year, 
-            m, 
-            round(r2, 3),
-            ((y[-1] - y[0])/y[0])*100,
-            len(y)
-        ))
-        
-    elif year == list(each_year.items())[-1][0] : 
+
     
-    
-        print('    ytd-{0:s}|  {1:>16.2f}|  {2:>16.3f}|  {3:>18.2f}|  {4:11}|'.format(
-        
-            year, 
-            m, 
-            round(r2, 3),
-            ((y[-1] - y[0])/y[0])*100,
-            len(y)
-        ))    
-    
-    
-        print()
-        print("last 12m")
-        print((y_values[-1] - y_values[-250])/y_values[-250])
-        print(250)        
-    
-    each_year[year]['linear_slop'] = round(m, 3)
-    each_year[year]['r2'] = round(r2, 3)
-    
-    best_fit_list = []
+    best_fit_line = []
     theta_fit_list_2 =[]
 
     
-    for i in range(len(each_year[year]['x_values'])):
+    for i in range(len(data_set['x_values'])):
 
-        best_fit_list.append(m*i+b)
+        best_fit_line.append(m*i+b)
+        
+        
         z_2 = np.poly1d(theta_2)
         
         theta_fit_list_2.append(z_2(i))
     
-    best_fit = np.array(best_fit_list)
-    
-    theta_fit_2 = np.array(theta_fit_list_2)
 
     
+    best_fit['slope'] = round(m, 3)
+    best_fit['r2'] = round(r2, 3)
+    best_fit['percent_increase'] = round(percent_increase, 3)
+    
+    best_fit['best_fit_line'] = best_fit_line
+    best_fit['theta_fit_list_2'] = theta_fit_list_2   
+    
+    
+    return(best_fit)
+
+
+
+def gen_time_frame_stats(all_time):
+    
+    
+    time_frame_stats = {} 
+
+    time_frame_stats['5'] = {}   
+    time_frame_stats['20'] = {}
+    time_frame_stats['60'] = {}
+    time_frame_stats['250'] = {}
+
+
+
+    
+    y_values = all_time['y_values']
     
     
     
+    for time_frame in time_frame_stats :
+    
+        time_frame_stats[time_frame]['percent_increase'] = round((((y_values[-1] - y_values[-1*int(time_frame)])/y_values[-1*int(time_frame)])*100), 3)
+        time_frame_stats[time_frame]['daily_percent_increase'] =round((((y_values[-1] - y_values[-1*int(time_frame)])/y_values[-1*int(time_frame)])*100)/int(time_frame), 3)
+
+        m_b,ssr , _, _, _ = np.polyfit(np.array(range(len(y_values[(-1* int(time_frame)):]))), y_values[(-1* int(time_frame)):], 1,full="true")
+
+        sst = sum([(day - np.average(y_values[(-1* int(time_frame)):]))**2 for day in y_values[(-1* int(time_frame)):] ])
+
+        ssr =ssr[0]
+        
+        
+        m = m_b[0]        
+        r2 = 1 -(ssr/sst)
+        
+        time_frame_stats[time_frame]['slope'] = round(m, 3)
+        time_frame_stats[time_frame]['r2'] = round(r2, 3)
+        
+    
+        
+    return(time_frame_stats)
+    
+
+
+def gen_best_fit_ma_chart(data_set_id, data_set):
+    
+
+#    
+#    x = np.array(converted_dates)
+#    y = np.array(each_year[year]['y_values'])
+#
+#    
+#    average_y_5 = np.array(each_year[year]['average_y_5'])
+#    average_y_20 = np.array(each_year[year]['average_y_20'])
+#    average_y_60 = np.array(each_year[year]['average_y_60'])
+#    
+#    
+#    average_y_5_20 = np.array(each_year[year]['average_y_5_20'])    
+#    average_y_5_60 = np.array(each_year[year]['average_y_5_60'])    
+#    average_y_20_60 = np.array(each_year[year]['average_y_20_60'])  
+#    
+#    rsi = np.array(each_year[year]['rsi'])
+#    
+    
+    
+    
+    converted_dates = datestr2num([ datetime.strptime(day, '%Y-%m-%d').strftime('%m/%d/%Y') for day in data_set['x_values'] ]) 
+
+
+    x = converted_dates
+
+    
+
     
     f = plt.figure()
     f.set_figheight(20)
     f.set_figwidth(40)
 
-#
-# each year chart 1
-#
 
 
 
 
     plt.subplot(2, 1, 1)
-    plt.title(year)
+    plt.title(data_set_id)
     
-    plt.plot_date( x, y, fmt='-', marker = ' ' , label='Value')
-    plt.plot_date( x, best_fit, fmt='-', marker = ' ' , label='linear')
-    plt.plot_date( x, theta_fit_2, fmt='-', marker = ' ' , label='poly 2')      
+    plt.plot_date( x, data_set['y_values']          , fmt='-', marker = ' ' , label='Value')
+    plt.plot_date( x, data_set['best_fit_line']     , fmt='-', marker = ' ' , label='linear')
+    plt.plot_date( x, data_set['theta_fit_list_2']  , fmt='-', marker = ' ' , label='poly 2')      
     
     plt.legend()
     plt.grid(axis = 'both')
     plt.xticks(rotation=65, horizontalalignment='right')
-
-
-
 
 
 
 
     plt.subplot(2, 1, 2)
-    plt.title(year + " - Value")
+    plt.title(data_set_id + " - Value")
 
 
     
-    plt.plot_date( x, y, fmt='-', marker = ' ' , label='Value')
+    plt.plot_date( x, data_set['y_values']       , fmt='-', marker = ' ' , label='Value')
 
-    plt.plot_date(x, average_y_5 , fmt='--', marker = ' ' , color='orange' , label='Running average 5')
-    plt.plot_date(x, average_y_20, fmt='--', marker = ' ' , color='green' , label='Running average 20')
-    plt.plot_date(x, average_y_60, fmt='--', marker = ' ' , color='red' , label='Running average 60')
-    
+    plt.plot_date(x, data_set['average_y_5']     , fmt='--', marker = ' ' , color='orange'  , label='Running average 5')
+    plt.plot_date(x, data_set['average_y_20']    , fmt='--', marker = ' ' , color='green'   , label='Running average 20')
+    plt.plot_date(x, data_set['average_y_60']    , fmt='--', marker = ' ' , color='red'     , label='Running average 60')
     
     
     
@@ -291,31 +335,35 @@ for year in each_year:
 
 
 
-    filename = year + "/value-ma.png"
+    filename = data_set_id + "/value-ma.png"
 
     plt.savefig(filename)
     plt.clf()
     
-    
-
-#
-# each year chart 2
-#
 
 
+def gen_ma_macd_rsi_chart(data_set_id, data_set):
 
 
+    converted_dates = datestr2num([ datetime.strptime(day, '%Y-%m-%d').strftime('%m/%d/%Y') for day in data_set['x_values'] ]) 
+
+
+    x = converted_dates
+
+   
+   
+   
     plt.subplot(3, 1, 1)
-    plt.title(year + " - MA")
+    plt.title(data_set_id + " - MA")
 
 
     plt.grid(axis = 'both')
     plt.xticks(rotation=65, horizontalalignment='right')
 
 
-    plt.plot_date(x, average_y_5 , fmt='--', marker = ' ' , color='orange' , label='Running average 5')
-    plt.plot_date(x, average_y_20, fmt='--', marker = ' ' , color='green' , label='Running average 20')
-    plt.plot_date(x, average_y_60, fmt='--', marker = ' ' , color='red' , label='Running average 60')
+    plt.plot_date(x, data_set['average_y_5']       , fmt='--', marker = ' ' , color='orange'      , label='Running average 5')
+    plt.plot_date(x, data_set['average_y_20']      , fmt='--', marker = ' ' , color='green'       , label='Running average 20')
+    plt.plot_date(x, data_set['average_y_60']      , fmt='--', marker = ' ' , color='red'         , label='Running average 60')
 
     plt.legend()
 
@@ -323,15 +371,15 @@ for year in each_year:
 
 
     plt.subplot(3, 1, 2)
-    plt.title(year + " - MACD")
+    plt.title(data_set_id + " - MACD")
 
 
     plt.grid(axis = 'both')
     plt.xticks(rotation=65, horizontalalignment='right')
 
-    plt.plot_date(x, average_y_5_20, fmt='--', marker = ' ' , color='green' , label='Running average 5 - 20')
-#    plt.plot_date(x, average_y_5_60, fmt='--', marker = ' ' , color='orange' , label='Running average 5 - 60')
-    plt.plot_date(x, average_y_20_60, fmt='--', marker = ' ' , color='red' , label='Running average 20 - 60')
+    plt.plot_date(x, data_set['average_y_5_20']    , fmt='--', marker = ' ' , color='green'     , label='Running average 5 - 20')
+#    plt.plot_date(x, data_set['average_y_5_60']    , fmt='--', marker = ' ' , color='orange'    , label='Running average 5 - 60')
+    plt.plot_date(x, data_set['average_y_20_60']   , fmt='--', marker = ' ' , color='red'       , label='Running average 20 - 60')
 
     plt.legend()
 
@@ -340,30 +388,28 @@ for year in each_year:
 
 
 
-
-
     plt.subplot(3, 1, 3)
-    plt.title(year + " - RSI")
+    plt.title(data_set_id + " - RSI")
 
 
-    upper_limit = 70
-    lower_limit = 30
+    upper_limit = 80
+    lower_limit = 40
 
     #plt.figure(figsize=(10, 6))
-    plt.grid(axis = 'y')
+    plt.grid(axis = 'both')
     plt.xticks(rotation=65, horizontalalignment='right')
     
-    plt.plot_date(x, rsi, fmt='-', marker = ' ' )
+    plt.plot_date(x, data_set['rsi'], fmt='-', marker = ' ', label='rsi' )
     
-    plt.axhline(y=upper_limit, color='r', linestyle='--', label='Overbought (70)')
-    plt.axhline(y=lower_limit, color='g', linestyle='--', label='Oversold (30)')
+    plt.axhline(y=upper_limit, color='r', linestyle='--', label='Overbought (80)')
+    plt.axhline(y=lower_limit, color='g', linestyle='--', label='Oversold (40)')
 
 
-
+    plt.legend()
 
 
   
-    filename = year + "/ma-macd.png"
+    filename = data_set_id + "/ma-macd.png"
 
     plt.savefig(filename)
     plt.clf()
@@ -373,83 +419,155 @@ for year in each_year:
     
     
     
-
-
-
     
     
     
     
     
-#
-# create all time charts 
-#    
+
+
+
+
+
+all_time = gen_all_time('P1.csv')
+all_time.update(gen_best_fit(all_time))
+    
+
+
+each_year = gen_each_year(all_time)
+
+
+all_time_high = gen_all_time_high(all_time)
+
+
+time_frame_stats = gen_time_frame_stats(all_time)
+
+
+
+print("high low cycle")
+print()
+print("------------+------------------+------------------+--------------+--------+----------+")
+print("        date|     all time high|      all time low|    difference|    days|   percent|")
+print("------------+------------------+------------------+--------------+--------+----------+")
+
+
+for item in all_time_high :
+
+
+    print('{0:>12s}|  {1:>16.2f}|  {2:>16.2f}|  {3:>12.2f}|  {4:6}|  {5:>8.2f}|'.format(
+    
+        item['date'] , 
+        item['cycle_high'] , 
+        item['cycle_low'] , 
+        item['difference'] , 
+        item['days'] , 
+        item['percent']
+    
+    ))
+
+
+
+
+print()
+print()
+print("yearly stats")
+print()
+print("------------+------------------+------------------+--------------------+-------------+")
+print("        year|             slope|                r2|          % increase|   total days|")
+print("------------+------------------+------------------+--------------------+-------------+")
+
+
+for year in each_year:
+    
+    
+    each_year[year].update(gen_best_fit(each_year[year]))
+    
+
+
+    print('{0:>12s}|  {1:>16.2f}|  {2:>16.3f}|  {3:>18.2f}|  {4:11}|'.format(
+    
+        year, 
+        each_year[year]['slope'], 
+        each_year[year]['r2'],
+        each_year[year]['percent_increase'],
+        len(each_year[year]['y_values'])
+    ))
+  
+
+
+
+print()
+print()
+print("time frame stats")
+print()
+print("------------+------------------+------------------+--------------------+-------------+")
+print("  time frame|             slope|                r2|          % increase|      daily %|")
+print("------------+------------------+------------------+--------------------+-------------+")
+
+
+
+
+for time_frame in time_frame_stats: 
+
+    
+    print('{0:>12s}|  {1:>16.2f}|  {2:>16.3f}|  {3:>18.2f}|  {4:11.2f}|'.format(
+    
+        time_frame, 
+        time_frame_stats[time_frame]['slope'], 
+        time_frame_stats[time_frame]['r2'],
+        time_frame_stats[time_frame]['percent_increase'],
+        time_frame_stats[time_frame]['daily_percent_increase']
+    ))
+        
+
+
+
+
+
+
+
+
+
+print()
+print("generating charts")
+
+print("all_time")
+
+if not os.path.exists("all_time"):
+    os.makedirs("all_time")
+
+
+gen_best_fit_ma_chart("all_time", all_time)
+
+gen_ma_macd_rsi_chart("all_time", all_time)
     
 
 
 
 
-converted_dates = datestr2num([ datetime.strptime(day, '%Y-%m-%d').strftime('%m/%d/%Y') for day in x_values ]) 
+
+for year in each_year:
+    
+
+    print(year)
+    
+    if not os.path.exists(year):
+        os.makedirs(year)
+
+    
+    
+    gen_best_fit_ma_chart(year, each_year[year])
+
+    gen_ma_macd_rsi_chart(year, each_year[year])
+    
+    
+   
 
 
 
 
-x_points = np.array(converted_dates)
-y_points = np.array(y_values)
-
-
-average_y_5 = moving_average(5 ,y_points)
-average_y_20 = moving_average(20 ,y_points)
-average_y_60 = moving_average(60 ,y_points)
-
-
-
-
-
-
-f = plt.figure()
-f.set_figheight(10)
-f.set_figwidth(25)
-
-plt.subplot(2, 1, 1)
-plt.title("Value")
-
-
-
-plt.plot_date( x_points, y_points , fmt='-', marker = ' ' )
-
-plt.plot_date(x_points, average_y_5 , fmt='--', marker = ' ' , label='Running average 5')
-plt.plot_date(x_points, average_y_20, fmt='--', marker = ' ' , label='Running average 20')
-plt.plot_date(x_points, average_y_60, fmt='--', marker = ' ' , label='Running average 60')
-
-plt.legend()
-plt.xticks(rotation=65, horizontalalignment='right')
-plt.grid(axis = 'both')
-
-plt.subplot(2, 1, 2)
-plt.title("MA")
-plt.plot_date(x_points, average_y_5 , fmt='--', marker = ' ' , label='Running average 5')
-plt.plot_date(x_points, average_y_20, fmt='--', marker = ' ' , label='Running average 20')
-plt.plot_date(x_points, average_y_60, fmt='--', marker = ' ' , label='Running average 60')
-
-
-
-plt.legend()
-
-plt.grid(axis = 'both')
-plt.xticks(rotation=65, horizontalalignment='right')
-
-
-plt.savefig('chart1.png')
-plt.clf()
-
-
-
-
-
-
-
-
+    
+    
 
 #
 # Generate pdf file 
@@ -459,8 +577,8 @@ plt.clf()
 
 pdf = fpdf(orientation="P", unit="mm", format="A4")
  
-
-
+print()
+print("pdf report")
 
 pdf.add_page()
 pdf.set_font("helvetica", "B", 20)
@@ -475,7 +593,7 @@ pdf.cell(0, 10, "Generated " ,align='R' )
 pdf.ln()
 
 pdf.set_font("helvetica", "", 12)
-pdf.cell(0, 10, x_values[-1] , align='L' )
+pdf.cell(0, 10, all_time['x_values'][-1] , align='L' )
 pdf.cell(0, 10, time.strftime("%Y-%m-%d %H:%M") , align='R' )
 
 pdf.ln(20)
@@ -491,7 +609,7 @@ pdf.ln()
 for year in each_year:
     pdf.set_font("helvetica", "", 12)
     pdf.cell(30, 10, year )
-    pdf.cell(30, 10, str(each_year[year]['linear_slop']) )
+    pdf.cell(30, 10, str(each_year[year]['slope']) )
     pdf.cell(30, 10, str(each_year[year]['r2']) )
     
     pdf.ln()
@@ -504,17 +622,21 @@ for year in each_year:
 
 
 
+print("pdf charts")
+print("all_time")
 
 
 pdf.add_page()
+pdf.image('all_time/value-ma.png', w = 200 , h = 250)    
 
-pdf.image('chart1.png', w = 200 , h = 250)    
 
-
+pdf.add_page()
+pdf.image( 'all_time/ma-macd.png', w = 200 , h = 250)    
 
 
 
 for year in each_year:
+
     print(year)
     pdf.add_page()
 
@@ -528,19 +650,6 @@ for year in each_year:
 
     pdf.add_page()
     pdf.image(year + '/ma-macd.png', w = 200 , h = 250)    
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 
