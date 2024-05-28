@@ -223,7 +223,7 @@ def gen_best_fit(data_set):
     
     
     percent_increase = ((y[-1] - y[0])/y[0])*100
-    
+    percent_increase_daily_avg = percent_increase/len(y)
 
 
     
@@ -245,6 +245,7 @@ def gen_best_fit(data_set):
     best_fit['slope'] = round(m, 3)
     best_fit['r2'] = round(r2, 3)
     best_fit['percent_increase'] = round(percent_increase, 3)
+    best_fit['percent_increase_daily_avg'] = round(percent_increase_daily_avg, 3)
     
     best_fit['best_fit_line'] = best_fit_line
     best_fit['theta_fit_list_2'] = theta_fit_list_2   
@@ -551,9 +552,9 @@ print()
 print()
 print("yearly stats")
 print()
-print("------------+------------------+------------------+--------------------+-------------+")
-print("        year|             slope|                r2|          % increase|   total days|")
-print("------------+------------------+------------------+--------------------+-------------+")
+print("------------+------------------+-------------+--------------+-----------+------------+")
+print("        year|             slope|           r2|    % increase|    daily %|  total days|")
+print("------------+------------------+-------------+--------------+-----------+------------+")
 
 
 for year in each_year:
@@ -563,12 +564,13 @@ for year in each_year:
     
 
 
-    print('{0:>12s}|  {1:>16.2f}|  {2:>16.3f}|  {3:>18.2f}|  {4:11}|'.format(
+    print('{0:>12s}|  {1:>16.2f}|  {2:>11.3f}|  {3:>12.2f}|  {4:>9.2f}|  {5:10}|'.format(
     
         year, 
         each_year[year]['slope'], 
         each_year[year]['r2'],
         each_year[year]['percent_increase'],
+        each_year[year]['percent_increase_daily_avg'],
         len(each_year[year]['y_values'])
     ))
   
