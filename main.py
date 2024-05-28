@@ -487,6 +487,18 @@ def gen_ma_macd_rsi_chart(data_set_id, data_set):
     
     
     
+# Initialize the ArgumentParser
+parser = argparse.ArgumentParser(description="A program to demonstrate optional arguments.")
+
+# Define optional arguments
+#parser.add_argument("-s", "--short", help="This is a short option")
+parser.add_argument("--ytd",    action='store_true', help="Run current YTD calculations")
+parser.add_argument("--all",    action='store_true', help="Run all time calculations")
+parser.add_argument("--years",  action='store_true', help="Run all past years calculations")
+
+# Parse the arguments
+args = parser.parse_args()
+
     
     
     
