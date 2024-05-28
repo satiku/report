@@ -33,7 +33,8 @@ def gen_all_time(file):
     all_time = {}
 
     all_time['x_values'] = []
-    all_time['y_values'] = []    
+    all_time['y_values'] = []  
+    all_time['daily_percent_increase'] = []
 
     all_time['average_y_5_20'] = []
     all_time['average_y_5_60'] = []                
@@ -44,22 +45,37 @@ def gen_all_time(file):
 
     #with open('Net Worth.csv', newline='') as csvfile:
 
+
+        previous_value = float(0)
+
         reader = csv.reader(csvfile)
 
         for row in reader:
             if row[1] != "" and row[1] != "Date":
 
+                if previous_value == 0 : 
+                    previous_value = float(row[2])
 
                 all_time['x_values'].append(row[1].split(" ")[0])
                 all_time['y_values'].append(float(row[2]))
                
 
+                all_time['daily_percent_increase'].append(((float(row[2]) - previous_value)/previous_value)*100)
+                
+                previous_value = float(row[2])
 
-
-
-        all_time['average_y_5'] = moving_average(5 ,all_time['y_values'])
+        all_time['average_y_5']  = moving_average(5 ,all_time['y_values'])
         all_time['average_y_20'] = moving_average(20 ,all_time['y_values'])
         all_time['average_y_60'] = moving_average(60 ,all_time['y_values'])
+        
+        all_time['daily_percent_increase_ma_5']   = moving_average(  5 ,all_time['daily_percent_increase'])
+        all_time['daily_percent_increase_ma_20']  = moving_average( 20 ,all_time['daily_percent_increase'])
+        all_time['daily_percent_increase_ma_60']  = moving_average( 60 ,all_time['daily_percent_increase'])
+        all_time['daily_percent_increase_ma_250'] = moving_average(250 ,all_time['daily_percent_increase'])
+        
+                
+        
+        
 
         for index ,_ in enumerate(all_time['y_values']) :
 
@@ -101,6 +117,13 @@ def gen_each_year(all_time):
             each_year[year]['average_y_20_60'] = []                
             
             each_year[year]['rsi'] = []   
+            
+            each_year[year]['daily_percent_increase'] = []
+            
+            each_year[year]['daily_percent_increase_ma_5']   = []
+            each_year[year]['daily_percent_increase_ma_20']  = []
+            each_year[year]['daily_percent_increase_ma_60']  = []
+            each_year[year]['daily_percent_increase_ma_250'] = []
 
 
         each_year[year]['x_values'].append(all_time['x_values'][index])
@@ -115,6 +138,14 @@ def gen_each_year(all_time):
         each_year[year]['average_y_20_60'].append(all_time['average_y_20'][index] - all_time['average_y_60'][index])    
         
         each_year[year]['rsi'].append(all_time['rsi'][index])
+        
+        each_year[year]['daily_percent_increase'].append(all_time['daily_percent_increase'][index])
+            
+        each_year[year]['daily_percent_increase_ma_5'].append(all_time['daily_percent_increase_ma_5'][index])
+        each_year[year]['daily_percent_increase_ma_20'].append(all_time['daily_percent_increase_ma_20'][index])
+        each_year[year]['daily_percent_increase_ma_60'].append(all_time['daily_percent_increase_ma_60'][index])
+        each_year[year]['daily_percent_increase_ma_250'].append(all_time['daily_percent_increase_ma_250'][index])
+
 
 
     return each_year
@@ -241,8 +272,8 @@ def gen_time_frame_stats(all_time):
     
     for time_frame in time_frame_stats :
     
-        time_frame_stats[time_frame]['percent_increase'] = round((((y_values[-1] - y_values[-1*int(time_frame)])/y_values[-1*int(time_frame)])*100), 3)
-        time_frame_stats[time_frame]['daily_percent_increase'] =round((((y_values[-1] - y_values[-1*int(time_frame)])/y_values[-1*int(time_frame)])*100)/int(time_frame), 3)
+        time_frame_stats[time_frame]['percent_increase']       = round((((y_values[-1] - y_values[-1*int(time_frame)])/y_values[-1*int(time_frame)])*100), 3)
+        time_frame_stats[time_frame]['daily_percent_increase'] = round((((y_values[-1] - y_values[-1*int(time_frame)])/y_values[-1*int(time_frame)])*100)/int(time_frame), 3)
 
         m_b,ssr , _, _, _ = np.polyfit(np.array(range(len(y_values[(-1* int(time_frame)):]))), y_values[(-1* int(time_frame)):], 1,full="true")
 
@@ -301,7 +332,7 @@ def gen_best_fit_ma_chart(data_set_id, data_set):
 
 
 
-    plt.subplot(2, 1, 1)
+    plt.subplot(3, 1, 1)
     plt.title(data_set_id)
     
     plt.plot_date( x, data_set['y_values']          , fmt='-', marker = ' ' , label='Value')
@@ -315,7 +346,7 @@ def gen_best_fit_ma_chart(data_set_id, data_set):
 
 
 
-    plt.subplot(2, 1, 2)
+    plt.subplot(3, 1, 2)
     plt.title(data_set_id + " - Value")
 
 
@@ -335,7 +366,42 @@ def gen_best_fit_ma_chart(data_set_id, data_set):
 
 
 
+
+
+
+
+
+
+    plt.subplot(3, 1, 3)
+    plt.title(data_set_id + " - Value")
+
+
+    
+    plt.plot_date( x, data_set['daily_percent_increase']       , fmt='-', marker = ' ' , label='Value')
+
+    plt.plot_date(x, data_set['daily_percent_increase_ma_5']     , fmt='--', marker = ' ' , color='orange'  , label='Running average 5')
+    plt.plot_date(x, data_set['daily_percent_increase_ma_20']    , fmt='--', marker = ' ' , color='green'   , label='Running average 20')
+    plt.plot_date(x, data_set['daily_percent_increase_ma_60']    , fmt='--', marker = ' ' , color='red'     , label='Running average 60')
+    plt.plot_date(x, data_set['daily_percent_increase_ma_250']    , fmt='--', marker = ' ' , color='purple'     , label='Running average 60')
+        
+    
+    
+    
+    plt.legend()
+    plt.grid(axis = 'both')
+    plt.xticks(rotation=65, horizontalalignment='right')
+
+
+
     filename = data_set_id + "/value-ma.png"
+
+
+
+
+
+
+
+
 
     plt.savefig(filename)
     plt.clf()
