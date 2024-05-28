@@ -610,37 +610,56 @@ for time_frame in time_frame_stats:
 print()
 print("generating charts")
 
-print("all_time")
+if args.all:
+    print("all_time")
 
-if not os.path.exists("all_time"):
-    os.makedirs("all_time")
+    if not os.path.exists("all_time"):
+        os.makedirs("all_time")
 
 
-gen_best_fit_ma_chart("all_time", all_time)
+    gen_best_fit_ma_chart("all_time", all_time)
 
-gen_ma_macd_rsi_chart("all_time", all_time)
+    gen_ma_macd_rsi_chart("all_time", all_time)
+        
+
+
+
+
+if args.years:
+    for year in list(each_year)[:-1]:
+        
+
+        print(year)
+        
+        if not os.path.exists(year):
+            os.makedirs(year)
+
+        
+        
+        gen_best_fit_ma_chart(year, each_year[year])
+
+        gen_ma_macd_rsi_chart(year, each_year[year])
+        
     
 
 
+if args.ytd:
+    for year in list(each_year)[-1:]:
+        
 
+        print(year)
+        
+        if not os.path.exists(year):
+            os.makedirs(year)
 
+        
+        
+        gen_best_fit_ma_chart(year, each_year[year])
 
-for year in each_year:
-    
-
-    print(year)
-    
-    if not os.path.exists(year):
-        os.makedirs(year)
-
-    
-    
-    gen_best_fit_ma_chart(year, each_year[year])
-
-    gen_ma_macd_rsi_chart(year, each_year[year])
-    
-    
-   
+        gen_ma_macd_rsi_chart(year, each_year[year])
+        
+        
+          
 
 
 
