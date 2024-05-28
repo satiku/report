@@ -371,8 +371,6 @@ def gen_best_fit_ma_chart(data_set_id, data_set):
 
 
 
-    print(len(x))
-    print(len(data_set['daily_percent_increase']))
 
     plt.subplot(3, 1, 3)
     plt.title(data_set_id + " - Value")
