@@ -618,7 +618,6 @@ if args.all:
 
 
     gen_best_fit_ma_chart("all_time", all_time)
-
     gen_ma_macd_rsi_chart("all_time", all_time)
         
 
@@ -637,7 +636,6 @@ if args.years:
         
         
         gen_best_fit_ma_chart(year, each_year[year])
-
         gen_ma_macd_rsi_chart(year, each_year[year])
         
     
@@ -655,7 +653,6 @@ if args.ytd:
         
         
         gen_best_fit_ma_chart(year, each_year[year])
-
         gen_ma_macd_rsi_chart(year, each_year[year])
         
         
@@ -721,35 +718,57 @@ for year in each_year:
 
 
 print("pdf charts")
-print("all_time")
-
-
-pdf.add_page()
-pdf.image('all_time/value-ma.png', w = 200 , h = 250)    
-
-
-pdf.add_page()
-pdf.image( 'all_time/ma-macd.png', w = 200 , h = 250)    
 
 
 
-for year in each_year:
 
-    print(year)
-    pdf.add_page()
-
-    pdf.set_font("helvetica", "B", 20)
-    pdf.cell(0, 18, year + " Report" , 1 , align='C')
-    pdf.ln()
-
-    pdf.add_page()
-    pdf.image(year + '/value-ma.png', w = 200 , h = 250)    
+if args.all:
+    print("all_time")
 
 
     pdf.add_page()
-    pdf.image(year + '/ma-macd.png', w = 200 , h = 250)    
+    pdf.image('all_time/value-ma.png', w = 200 , h = 250)    
 
 
+    pdf.add_page()
+    pdf.image( 'all_time/ma-macd.png', w = 200 , h = 250)    
+
+
+if args.years:
+    for year in list(each_year)[:-1]:
+
+        print(year)
+        pdf.add_page()
+
+        pdf.set_font("helvetica", "B", 20)
+        pdf.cell(0, 18, year + " Report" , 1 , align='C')
+        pdf.ln()
+
+        pdf.add_page()
+        pdf.image(year + '/value-ma.png', w = 200 , h = 250)    
+
+
+        pdf.add_page()
+        pdf.image(year + '/ma-macd.png', w = 200 , h = 250)    
+
+
+
+if args.ytd:
+    for year in list(each_year)[-1:]:
+
+        print(year)
+        pdf.add_page()
+
+        pdf.set_font("helvetica", "B", 20)
+        pdf.cell(0, 18, year + " Report" , 1 , align='C')
+        pdf.ln()
+
+        pdf.add_page()
+        pdf.image(year + '/value-ma.png', w = 200 , h = 250)    
+
+
+        pdf.add_page()
+        pdf.image(year + '/ma-macd.png', w = 200 , h = 250)    
 
 
 
