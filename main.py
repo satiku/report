@@ -523,8 +523,17 @@ all_time_high = gen_all_time_high(all_time)
 time_frame_stats = gen_time_frame_stats(all_time)
 
 
+for year in each_year:
+    
+    
+    each_year[year].update(gen_best_fit(each_year[year]))
+    
 
-print("high low cycle")
+print()
+print()
+print("=============================")
+print(" high low cycle")
+print("=============================")
 print()
 print("------------+------------------+------------------+--------------+--------+----------+")
 print("        date|     all time high|      all time low|    difference|    days|   percent|")
@@ -550,7 +559,9 @@ for item in all_time_high :
 
 print()
 print()
-print("yearly stats")
+print("=============================")
+print(" yearly stats")
+print("=============================")
 print()
 print("------------+------------------+-------------+--------------+-----------+------------+")
 print("        year|             slope|           r2|    % increase|    daily %|  total days|")
@@ -560,9 +571,6 @@ print("------------+------------------+-------------+--------------+-----------+
 for year in each_year:
     
     
-    each_year[year].update(gen_best_fit(each_year[year]))
-    
-
 
     print('{0:>12s}|  {1:>16.2f}|  {2:>11.3f}|  {3:>12.2f}|  {4:>9.2f}|  {5:10}|'.format(
     
@@ -579,7 +587,9 @@ for year in each_year:
 
 print()
 print()
-print("time frame stats")
+print("=============================")
+print(" time frame stats")
+print("=============================")
 print()
 print("------------+------------------+------------------+--------------------+-------------+")
 print("  time frame|             slope|                r2|          % increase|      daily %|")
@@ -610,7 +620,9 @@ for time_frame in time_frame_stats:
 
 
 print()
+print("=============================")
 print("generating charts")
+print("=============================")
 
 if args.all:
     print("all_time")
@@ -700,6 +712,8 @@ pdf.set_font("helvetica", "B", 12)
 pdf.cell(30, 10, "Year" )
 pdf.cell(30, 10, "Linear slope" )
 pdf.cell(30, 10, "R squared" )
+pdf.cell(30, 10, "% increase" )
+pdf.cell(30, 10, "daily % avg" )
 
 pdf.ln()
 
@@ -708,7 +722,8 @@ for year in each_year:
     pdf.cell(30, 10, year )
     pdf.cell(30, 10, str(each_year[year]['slope']) )
     pdf.cell(30, 10, str(each_year[year]['r2']) )
-    
+    pdf.cell(30, 10, str(each_year[year]['percent_increase']) )
+    pdf.cell(30, 10, str(each_year[year]['percent_increase_daily_avg']) )    
     pdf.ln()
 
 
