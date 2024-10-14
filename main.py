@@ -1,4 +1,5 @@
 import csv
+import argparse
 import matplotlib.pyplot as plt
 import numpy as np
 import os
@@ -222,7 +223,7 @@ def gen_best_fit(data_set):
     
     
     percent_increase = ((y[-1] - y[0])/y[0])*100
-    
+    percent_increase_daily_avg = percent_increase/len(y)
 
 
     
@@ -244,6 +245,7 @@ def gen_best_fit(data_set):
     best_fit['slope'] = round(m, 3)
     best_fit['r2'] = round(r2, 3)
     best_fit['percent_increase'] = round(percent_increase, 3)
+    best_fit['percent_increase_daily_avg'] = round(percent_increase_daily_avg, 3)
     
     best_fit['best_fit_line'] = best_fit_line
     best_fit['theta_fit_list_2'] = theta_fit_list_2   
@@ -486,6 +488,18 @@ def gen_ma_macd_rsi_chart(data_set_id, data_set):
     
     
     
+# Initialize the ArgumentParser
+parser = argparse.ArgumentParser(description="A program to demonstrate optional arguments.")
+
+# Define optional arguments
+#parser.add_argument("-s", "--short", help="This is a short option")
+parser.add_argument("--ytd",    action='store_true', help="Run current YTD calculations")
+parser.add_argument("--all",    action='store_true', help="Run all time calculations")
+parser.add_argument("--years",  action='store_true', help="Run all past years calculations")
+
+# Parse the arguments
+args = parser.parse_args()
+
     
     
     
@@ -509,8 +523,17 @@ all_time_high = gen_all_time_high(all_time)
 time_frame_stats = gen_time_frame_stats(all_time)
 
 
+for year in each_year:
+    
+    
+    each_year[year].update(gen_best_fit(each_year[year]))
+    
 
-print("high low cycle")
+print()
+print()
+print("=============================")
+print(" high low cycle")
+print("=============================")
 print()
 print("------------+------------------+------------------+--------------+--------+----------+")
 print("        date|     all time high|      all time low|    difference|    days|   percent|")
@@ -536,26 +559,26 @@ for item in all_time_high :
 
 print()
 print()
-print("yearly stats")
+print("=============================")
+print(" yearly stats")
+print("=============================")
 print()
-print("------------+------------------+------------------+--------------------+-------------+")
-print("        year|             slope|                r2|          % increase|   total days|")
-print("------------+------------------+------------------+--------------------+-------------+")
+print("------------+------------------+-------------+--------------+-----------+------------+")
+print("        year|             slope|           r2|    % increase|    daily %|  total days|")
+print("------------+------------------+-------------+--------------+-----------+------------+")
 
 
 for year in each_year:
     
     
-    each_year[year].update(gen_best_fit(each_year[year]))
-    
 
-
-    print('{0:>12s}|  {1:>16.2f}|  {2:>16.3f}|  {3:>18.2f}|  {4:11}|'.format(
+    print('{0:>12s}|  {1:>16.2f}|  {2:>11.3f}|  {3:>12.2f}|  {4:>9.2f}|  {5:10}|'.format(
     
         year, 
         each_year[year]['slope'], 
         each_year[year]['r2'],
         each_year[year]['percent_increase'],
+        each_year[year]['percent_increase_daily_avg'],
         len(each_year[year]['y_values'])
     ))
   
@@ -564,7 +587,9 @@ for year in each_year:
 
 print()
 print()
-print("time frame stats")
+print("=============================")
+print(" time frame stats")
+print("=============================")
 print()
 print("------------+------------------+------------------+--------------------+-------------+")
 print("  time frame|             slope|                r2|          % increase|      daily %|")
@@ -595,39 +620,57 @@ for time_frame in time_frame_stats:
 
 
 print()
+print("=============================")
 print("generating charts")
+print("=============================")
 
-print("all_time")
+if args.all:
+    print("all_time")
 
-if not os.path.exists("all_time"):
-    os.makedirs("all_time")
+    if not os.path.exists("all_time"):
+        os.makedirs("all_time")
 
 
-gen_best_fit_ma_chart("all_time", all_time)
+    gen_best_fit_ma_chart("all_time", all_time)
+    gen_ma_macd_rsi_chart("all_time", all_time)
+        
 
-gen_ma_macd_rsi_chart("all_time", all_time)
+
+
+
+if args.years:
+    for year in list(each_year)[:-1]:
+        
+
+        print(year)
+        
+        if not os.path.exists(year):
+            os.makedirs(year)
+
+        
+        
+        gen_best_fit_ma_chart(year, each_year[year])
+        gen_ma_macd_rsi_chart(year, each_year[year])
+        
     
 
 
+if args.ytd:
+    for year in list(each_year)[-1:]:
+        
 
+        print(year)
+        
+        if not os.path.exists(year):
+            os.makedirs(year)
 
-
-for year in each_year:
-    
-
-    print(year)
-    
-    if not os.path.exists(year):
-        os.makedirs(year)
-
-    
-    
-    gen_best_fit_ma_chart(year, each_year[year])
-
-    gen_ma_macd_rsi_chart(year, each_year[year])
-    
-    
-   
+        
+        
+        gen_best_fit_ma_chart(year, each_year[year])
+        gen_ma_macd_rsi_chart(year, each_year[year])
+        
+        
+          
 
 
 
@@ -669,6 +712,8 @@ pdf.set_font("helvetica", "B", 12)
 pdf.cell(30, 10, "Year" )
 pdf.cell(30, 10, "Linear slope" )
 pdf.cell(30, 10, "R squared" )
+pdf.cell(30, 10, "% increase" )
+pdf.cell(30, 10, "daily % avg" )
 
 pdf.ln()
 
@@ -677,7 +722,8 @@ for year in each_year:
     pdf.cell(30, 10, year )
     pdf.cell(30, 10, str(each_year[year]['slope']) )
     pdf.cell(30, 10, str(each_year[year]['r2']) )
-    
+    pdf.cell(30, 10, str(each_year[year]['percent_increase']) )
+    pdf.cell(30, 10, str(each_year[year]['percent_increase_daily_avg']) )    
     pdf.ln()
 
 
@@ -689,35 +735,57 @@ for year in each_year:
 
 
 print("pdf charts")
-print("all_time")
-
-
-pdf.add_page()
-pdf.image('all_time/value-ma.png', w = 200 , h = 250)    
-
-
-pdf.add_page()
-pdf.image( 'all_time/ma-macd.png', w = 200 , h = 250)    
 
 
 
-for year in each_year:
 
-    print(year)
-    pdf.add_page()
-
-    pdf.set_font("helvetica", "B", 20)
-    pdf.cell(0, 18, year + " Report" , 1 , align='C')
-    pdf.ln()
-
-    pdf.add_page()
-    pdf.image(year + '/value-ma.png', w = 200 , h = 250)    
+if args.all:
+    print("all_time")
 
 
     pdf.add_page()
-    pdf.image(year + '/ma-macd.png', w = 200 , h = 250)    
+    pdf.image('all_time/value-ma.png', w = 200 , h = 250)    
 
 
+    pdf.add_page()
+    pdf.image( 'all_time/ma-macd.png', w = 200 , h = 250)    
+
+
+if args.years:
+    for year in list(each_year)[:-1]:
+
+        print(year)
+        pdf.add_page()
+
+        pdf.set_font("helvetica", "B", 20)
+        pdf.cell(0, 18, year + " Report" , 1 , align='C')
+        pdf.ln()
+
+        pdf.add_page()
+        pdf.image(year + '/value-ma.png', w = 200 , h = 250)    
+
+
+        pdf.add_page()
+        pdf.image(year + '/ma-macd.png', w = 200 , h = 250)    
+
+
+
+if args.ytd:
+    for year in list(each_year)[-1:]:
+
+        print(year)
+        pdf.add_page()
+
+        pdf.set_font("helvetica", "B", 20)
+        pdf.cell(0, 18, year + " Report" , 1 , align='C')
+        pdf.ln()
+
+        pdf.add_page()
+        pdf.image(year + '/value-ma.png', w = 200 , h = 250)    
+
+
+        pdf.add_page()
+        pdf.image(year + '/ma-macd.png', w = 200 , h = 250)    
 
 
 
