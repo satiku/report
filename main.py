@@ -719,6 +719,16 @@ pdf.ln()
 
 for year in each_year:
     pdf.set_font("helvetica", "", 12)
+    
+    if year == list(each_year)[-1]:
+        print("test")
+        pdf.cell(30, 10, "D-250" )
+        pdf.cell(30, 10, str(time_frame_stats['250']['slope']) )
+        pdf.cell(30, 10, str(time_frame_stats['250']['r2']) )
+        pdf.cell(30, 10, str(time_frame_stats['250']['percent_increase']) )
+        pdf.cell(30, 10, str(time_frame_stats['250']['daily_percent_increase']) )    
+        pdf.ln()
+    
     pdf.cell(30, 10, year )
     pdf.cell(30, 10, str(each_year[year]['slope']) )
     pdf.cell(30, 10, str(each_year[year]['r2']) )
