@@ -5,6 +5,8 @@ import numpy as np
 import os
 import ta
 import pandas as pd
+from bokeh.plotting import figure, show
+from bokeh.models import DatetimeTickFormatter
 from  fpdf import FPDF as fpdf
 import time
 from datetime import datetime 
@@ -482,7 +484,34 @@ def gen_ma_macd_rsi_chart(data_set_id, data_set):
     plt.savefig(filename)
     plt.clf()
 
+
+def gen_bokeh_chart(data_set_id, data_set):
     
+
+    
+    x = [ datetime.strptime(day, '%Y-%m-%d') for day in data_set['x_values'] ]
+#    converted_dates = [ datetime.strptime(day, '%Y-%m-%d').date() for day in data_set['x_values'] ]
+
+
+
+  
+    
+    p = figure(x_axis_type="datetime", width=2000, height=1200,title="Multiple line example", x_axis_label="x", y_axis_label="y")
+
+    # add multiple renderers
+    p.line(x, data_set['y_values'], legend_label="Value", color="blue", line_width=1)
+    
+    p.line(x, data_set['average_y_5'] , legend_label="SMA 5", color="orange", line_width=1)
+    p.line(x, data_set['average_y_20'], legend_label="SMA 20", color="green", line_width=1)
+    p.line(x, data_set['average_y_60'], legend_label="SMA 60", color="red", line_width=1)
+    # show the results
+    
+    p.xaxis[0].formatter = DatetimeTickFormatter(months="%b %Y")
+    
+    show(p)
+
+
+
     
     
     
@@ -496,6 +525,7 @@ parser = argparse.ArgumentParser(description="A program to demonstrate optional 
 parser.add_argument("--ytd",    action='store_true', help="Run current YTD calculations")
 parser.add_argument("--all",    action='store_true', help="Run all time calculations")
 parser.add_argument("--years",  action='store_true', help="Run all past years calculations")
+parser.add_argument("--bokeh",  action='store_true', help="Create Bokeh Charts")
 
 # Parse the arguments
 args = parser.parse_args()
@@ -801,3 +831,20 @@ if args.ytd:
 
 pdf.output("report " + time.strftime("%Y-%m-%d %H-%M") + ".pdf")
 pdf.output("report.pdf")
+
+
+
+
+
+
+
+if args.bokeh:
+    print("all_time")
+
+    if not os.path.exists("all_time"):
+        os.makedirs("all_time")
+
+
+    gen_bokeh_chart("all_time", all_time)
+#    gen_ma_macd_rsi_chart("all_time", all_time)
+        
