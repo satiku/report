@@ -6,7 +6,10 @@ import os
 import ta
 import pandas as pd
 from bokeh.plotting import figure, show
+from bokeh.models import Tabs, Tooltip, Panel
 from bokeh.models import DatetimeTickFormatter
+from bokeh.layouts import column
+from bokeh.models import BoxAnnotation
 from  fpdf import FPDF as fpdf
 import time
 from datetime import datetime 
@@ -485,9 +488,13 @@ def gen_ma_macd_rsi_chart(data_set_id, data_set):
     plt.clf()
 
 
-def gen_bokeh_chart(data_set_id, data_set):
+def gen_bokeh_chart(data_set_id, data_set, each_year):
     
-
+    chart_width = 1500
+    chart_height = 800
+    
+    
+    tabs = []
     
     x = [ datetime.strptime(day, '%Y-%m-%d') for day in data_set['x_values'] ]
 #    converted_dates = [ datetime.strptime(day, '%Y-%m-%d').date() for day in data_set['x_values'] ]
@@ -496,19 +503,188 @@ def gen_bokeh_chart(data_set_id, data_set):
 
   
     
-    p = figure(x_axis_type="datetime", width=2000, height=1200,title="Multiple line example", x_axis_label="x", y_axis_label="y")
+    p_all = figure(x_axis_type="datetime", width=chart_width, height=chart_height,title="Multiple line example", x_axis_label="x", y_axis_label="y")
 
     # add multiple renderers
-    p.line(x, data_set['y_values'], legend_label="Value", color="blue", line_width=1)
+    p_all.line(x, data_set['y_values'], legend_label="Value", color="blue", line_width=1)
     
-    p.line(x, data_set['average_y_5'] , legend_label="SMA 5", color="orange", line_width=1)
-    p.line(x, data_set['average_y_20'], legend_label="SMA 20", color="green", line_width=1)
-    p.line(x, data_set['average_y_60'], legend_label="SMA 60", color="red", line_width=1)
+    p_all.line(x, data_set['average_y_5'] , legend_label="SMA 5", color="orange", line_width=1)
+    p_all.line(x, data_set['average_y_20'], legend_label="SMA 20", color="green", line_width=1)
+    p_all.line(x, data_set['average_y_60'], legend_label="SMA 60", color="red", line_width=1)
     # show the results
     
-    p.xaxis[0].formatter = DatetimeTickFormatter(months="%b %Y")
+    p_all.line(x, data_set['best_fit_line'], legend_label="linear", color="purple", line_width=1)
+    p_all.line(x, data_set['theta_fit_list_2'], legend_label="poly 2", color="gold", line_width=1)    
+  
+        
+    p_all.xaxis[0].formatter = DatetimeTickFormatter(months="%b %Y")
     
-    show(p)
+    p_all.legend.click_policy="hide"
+    p_all.legend.location = "top_left"    
+    
+    
+    
+   
+    p_all_daily_percent_increase = figure(x_axis_type="datetime", width=chart_width, height=chart_height,title="Multiple line example", x_axis_label="x", y_axis_label="y")
+
+    # add multiple renderers
+    p_all_daily_percent_increase.line(x, data_set['daily_percent_increase'], legend_label="Value", color="blue", line_width=1)
+    
+    p_all_daily_percent_increase.line(x, data_set['daily_percent_increase_ma_5'] , legend_label="SMA 5", color="orange", line_width=1)
+    p_all_daily_percent_increase.line(x, data_set['daily_percent_increase_ma_20'], legend_label="SMA 20", color="green", line_width=1)
+    p_all_daily_percent_increase.line(x, data_set['daily_percent_increase_ma_60'], legend_label="SMA 60", color="red", line_width=1)
+    p_all_daily_percent_increase.line(x, data_set['daily_percent_increase_ma_250'], legend_label="SMA 250", color="purple", line_width=1)
+
+        
+    p_all_daily_percent_increase.xaxis[0].formatter = DatetimeTickFormatter(months="%b %Y")
+    
+    p_all_daily_percent_increase.legend.click_policy="hide"
+    p_all_daily_percent_increase.legend.location = "top_left"    
+      
+    
+    
+    
+    p_all_rsi = figure(x_axis_type="datetime", width=chart_width, height=chart_height,title="Multiple line example", x_axis_label="x", y_axis_label="y")
+
+    # add multiple renderers
+    p_all_rsi.line(x, data_set['rsi'], legend_label="RSI", color="blue", line_width=1)
+    
+
+    p_all_rsi.add_layout(BoxAnnotation(top=40, fill_alpha=0.1, fill_color='green', line_color='green'))
+    p_all_rsi.add_layout(BoxAnnotation(bottom=80, fill_alpha=0.1, fill_color='red', line_color='red'))
+
+
+
+        
+    p_all_rsi.xaxis[0].formatter = DatetimeTickFormatter(months="%b %Y")
+    
+    p_all_rsi.legend.click_policy="hide"
+    p_all_rsi.legend.location = "top_left"    
+          
+    
+
+    
+    
+    
+    
+    tabs.append(Panel(child=column(p_all, p_all_daily_percent_increase,p_all_rsi), title="all"))
+    
+    
+    p_years = {}
+    
+    for year in list(each_year)[:-1]:
+    
+        print(year)
+
+        
+        
+        x = [ datetime.strptime(day, '%Y-%m-%d') for day in each_year[year]['x_values'] ]
+        
+        p_years['year'] = figure(x_axis_type="datetime", width=chart_width, height=chart_height,title="Multiple line example", x_axis_label="x", y_axis_label="y")
+        
+        
+        
+        # add multiple renderers
+        p_years['year'].line(x, each_year[year]['y_values'], legend_label="Value", color="blue", line_width=1)
+        
+        p_years['year'].line(x, each_year[year]['average_y_5'] , legend_label="SMA 5", color="orange", line_width=1)
+        p_years['year'].line(x, each_year[year]['average_y_20'], legend_label="SMA 20", color="green", line_width=1)
+        p_years['year'].line(x, each_year[year]['average_y_60'], legend_label="SMA 60", color="red", line_width=1)
+        # show the results
+        
+        p_years['year'].xaxis[0].formatter = DatetimeTickFormatter(months="%b %Y")
+        
+        p_years['year'].legend.click_policy="hide"
+        p_years['year'].legend.location = "top_left"    
+    
+        tabs.append(Panel(child=p_years['year'], title=year))
+    
+
+
+
+
+
+    for year in list(each_year)[-1:]:
+    
+        print(year)
+
+        
+        
+        x = [ datetime.strptime(day, '%Y-%m-%d') for day in each_year[year]['x_values'] ]
+        
+        p_years['year'] = figure(x_axis_type="datetime", width=chart_width, height=chart_height,title="Multiple line example", x_axis_label="x", y_axis_label="y")
+        
+        
+        
+        # add multiple renderers
+        p_years['year'].line(x, each_year[year]['y_values'], legend_label="Value", color="blue", line_width=1)
+        
+        p_years['year'].line(x, each_year[year]['average_y_5'] , legend_label="SMA 5", color="orange", line_width=1)
+        p_years['year'].line(x, each_year[year]['average_y_20'], legend_label="SMA 20", color="green", line_width=1)
+        p_years['year'].line(x, each_year[year]['average_y_60'], legend_label="SMA 60", color="red", line_width=1)
+        # show the results
+        
+        p_years['year'].xaxis[0].formatter = DatetimeTickFormatter(months="%b %Y")
+        
+        p_years['year'].legend.click_policy="hide"
+        p_years['year'].legend.location = "top_left"
+    
+
+        tabs.append(Panel(child=p_years['year'], title=year+"-YTD"))
+    
+
+
+
+
+    x = [ datetime.strptime(day, '%Y-%m-%d') for day in data_set['x_values'][-250:] ]
+#    converted_dates = [ datetime.strptime(day, '%Y-%m-%d').date() for day in data_set['x_values'] ]
+
+
+
+  
+    
+    p_all = figure(x_axis_type="datetime", width=chart_width, height=chart_height,title="Multiple line example", x_axis_label="x", y_axis_label="y")
+
+    # add multiple renderers
+    p_all.line(x, data_set['y_values'][-250:] , legend_label="Value", color="blue", line_width=1)
+    
+    p_all.line(x, data_set['average_y_5'][-250:]  , legend_label="SMA 5", color="orange", line_width=1)
+    p_all.line(x, data_set['average_y_20'][-250:] , legend_label="SMA 20", color="green", line_width=1)
+    p_all.line(x, data_set['average_y_60'][-250:] , legend_label="SMA 60", color="red", line_width=1)
+    # show the results
+    
+    p_all.line(x, data_set['best_fit_line'][-250:] , legend_label="linear", color="purple", line_width=1)
+    p_all.line(x, data_set['theta_fit_list_2'][-250:] , legend_label="poly 2", color="gold", line_width=1)    
+  
+        
+    p_all.xaxis[0].formatter = DatetimeTickFormatter(months="%b %Y")
+    
+    p_all.legend.click_policy="hide"
+    p_all.legend.location = "top_left"    
+    
+    
+    tabs.append(Panel(child=p_all, title="last-250"))
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+    tabs0 = Tabs(tabs=tabs)
+    
+    
+    
+    show(tabs0)
 
 
 
@@ -845,6 +1021,6 @@ if args.bokeh:
         os.makedirs("all_time")
 
 
-    gen_bokeh_chart("all_time", all_time)
+    gen_bokeh_chart("all_time", all_time , each_year)
 #    gen_ma_macd_rsi_chart("all_time", all_time)
         
