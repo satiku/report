@@ -503,7 +503,7 @@ def gen_bokeh_chart(data_set_id, data_set, each_year):
 
   
     
-    p_all = figure(x_axis_type="datetime", width=chart_width, height=chart_height,title="Multiple line example", x_axis_label="x", y_axis_label="y")
+    p_all = figure(x_axis_type="datetime", sizing_mode="scale_width", aspect_ratio=11/5 ,title="Multiple line example", x_axis_label="x", y_axis_label="y")
 
     # add multiple renderers
     p_all.line(x, data_set['y_values'], legend_label="Value", color="blue", line_width=1)
@@ -525,7 +525,7 @@ def gen_bokeh_chart(data_set_id, data_set, each_year):
     
     
    
-    p_all_daily_percent_increase = figure(x_axis_type="datetime", width=chart_width, height=chart_height,title="Multiple line example", x_axis_label="x", y_axis_label="y")
+    p_all_daily_percent_increase = figure(x_axis_type="datetime", sizing_mode="scale_width", aspect_ratio=8 ,title="Multiple line example", x_axis_label="x", y_axis_label="y")
 
     # add multiple renderers
     p_all_daily_percent_increase.line(x, data_set['daily_percent_increase'], legend_label="Value", color="blue", line_width=1)
@@ -544,7 +544,7 @@ def gen_bokeh_chart(data_set_id, data_set, each_year):
     
     
     
-    p_all_rsi = figure(x_axis_type="datetime", width=chart_width, height=chart_height,title="Multiple line example", x_axis_label="x", y_axis_label="y")
+    p_all_rsi = figure(x_axis_type="datetime", sizing_mode="scale_width", aspect_ratio=8, title="Multiple line example", x_axis_label="x", y_axis_label="y")
 
     # add multiple renderers
     p_all_rsi.line(x, data_set['rsi'], legend_label="RSI", color="blue", line_width=1)
@@ -567,7 +567,7 @@ def gen_bokeh_chart(data_set_id, data_set, each_year):
     
     
     
-    tabs.append(Panel(child=column(p_all, p_all_daily_percent_increase,p_all_rsi), title="all"))
+    tabs.append(Panel(child=column(p_all, p_all_daily_percent_increase,p_all_rsi, sizing_mode="stretch_width"), title="all"))
     
     
     p_years = {}
