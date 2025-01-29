@@ -84,10 +84,36 @@ def gen_all_time(file):
         
 
         for index ,_ in enumerate(all_time['y_values']) :
-
-            all_time['average_y_5_20'].append(all_time['average_y_5'][index] - all_time['average_y_20'][index])
-            all_time['average_y_5_60'].append(all_time['average_y_5'][index] - all_time['average_y_60'][index])
-            all_time['average_y_20_60'].append(all_time['average_y_20'][index] - all_time['average_y_60'][index])    
+            
+            if np.isnan(all_time['average_y_5'][index]) : 
+                all_time['average_y_5_20'].append(np.nan)
+                all_time['average_y_5_60'].append(np.nan)               
+                all_time['average_y_20_60'].append(np.nan) 
+                
+                continue
+                
+            elif np.isnan(all_time['average_y_20'][index] ):
+                all_time['average_y_5_20'].append(np.nan)
+                all_time['average_y_5_60'].append(np.nan)               
+                all_time['average_y_20_60'].append(np.nan)                
+                
+                continue 
+                
+                
+            elif np.isnan(all_time['average_y_60'][index]):
+                all_time['average_y_5_20'].append(all_time['average_y_5'][index] - all_time['average_y_20'][index])
+                
+                
+                all_time['average_y_5_60'].append(np.nan)    
+                all_time['average_y_20_60'].append(np.nan) 
+                
+                continue 
+                
+                
+            else: 
+                all_time['average_y_5_20'].append(all_time['average_y_5'][index] - all_time['average_y_20'][index])
+                all_time['average_y_5_60'].append(all_time['average_y_5'][index] - all_time['average_y_60'][index])
+                all_time['average_y_20_60'].append(all_time['average_y_20'][index] - all_time['average_y_60'][index])    
 
         df = pd.DataFrame({'Actual': all_time['y_values']})
 
@@ -563,11 +589,39 @@ def gen_bokeh_chart(data_set_id, data_set, each_year):
           
     
 
+
+
+
+
+
+    
+    
+    
+    p_macd = figure(x_axis_type="datetime", sizing_mode="scale_width", aspect_ratio=8, title="MACD", x_axis_label="x", y_axis_label="y")
+
+    # add multiple renderers
+
+    p_macd.line(x, data_set['average_y_5_20']     , legend_label="Running average 5 - 20"  ,   color="green" , line_width=1 )
+#    plt.plot_date(x, data_set['average_y_5_60']  , legend_label='Running average 5 - 60'   , color='orange' , line_width=1 )
+    p_macd.line(x, data_set['average_y_20_60']    , legend_label="Running average 20 - 60"   , color="red"   , line_width=1     )
+
+
+        
+    p_macd.xaxis[0].formatter = DatetimeTickFormatter(months="%b %Y")
+    
+    p_macd.legend.click_policy="hide"
+    p_macd.legend.location = "top_left"    
+          
+    
+
+
+
+
     
     
     
     
-    tabs.append(Panel(child=column(p_all, p_all_daily_percent_increase,p_all_rsi, sizing_mode="stretch_width"), title="all"))
+    tabs.append(Panel(child=column(p_all, p_all_daily_percent_increase,p_all_rsi,p_macd, sizing_mode="stretch_width"), title="all"))
     
     
     p_years = {}
