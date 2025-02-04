@@ -10,6 +10,7 @@ from bokeh.models import Tabs, Tooltip, Panel
 from bokeh.models import DatetimeTickFormatter
 from bokeh.layouts import column
 from bokeh.models import BoxAnnotation
+from bokeh.models import LinearAxis, Range1d
 from  fpdf import FPDF as fpdf
 import time
 from datetime import datetime 
@@ -222,6 +223,81 @@ def gen_all_time_high(all_time):
     
     
     return all_time_high
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+def gen_all_time_downside(all_time):
+
+    all_time_downside = {}
+    
+    
+    
+    all_time_downside['downside'] = []
+    all_time_downside['downside_percent'] = []
+            
+            
+            
+            
+    cycle_high = 0
+
+ 
+    for index, value in enumerate(all_time['y_values']) :
+
+        if value > cycle_high : 
+            
+            cycle_high = value
+            
+            
+            
+            all_time_downside['downside'].append(0) 
+            all_time_downside['downside_percent'].append(0) 
+            
+            
+        elif value < cycle_high : 
+            
+            
+            
+            
+            all_time_downside['downside'].append(round(cycle_high - value ,3) ) 
+            all_time_downside['downside_percent'].append(round((((cycle_high - value)/cycle_high)*100),3)) 
+  
+    
+    return all_time_downside
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -617,11 +693,48 @@ def gen_bokeh_chart(data_set_id, data_set, each_year):
 
 
 
+  
+    
+    p_downside = figure(x_axis_type="datetime", sizing_mode="scale_width", aspect_ratio=8 ,title="Multiple line example", x_axis_label="x", y_axis_label="y")
+
+
+
+    # Setting the second y axis range name and range
+    p_downside.extra_y_ranges = {"foo": Range1d(start=-0, end=25)}
+
+    # Adding the second axis to the plot.  
+    p_downside.add_layout(LinearAxis(y_range_name="foo"), 'right')
+
+
+
+
+    # add multiple renderers
+    p_downside.line(x, data_set['downside'], legend_label="Value", color="blue", line_width=1)
+    p_downside.line(x, data_set['downside_percent'], legend_label="Value", color="green", line_width=1 , y_range_name="foo")    
+
+        
+    p_downside.xaxis[0].formatter = DatetimeTickFormatter(months="%b %Y")
+    
+    p_downside.legend.click_policy="hide"
+    p_downside.legend.location = "top_left"    
+    
+
+
+
+
+
+
+
+
+
+
+
+
     
     
     
     
-    tabs.append(Panel(child=column(p_all, p_all_daily_percent_increase,p_all_rsi,p_macd, sizing_mode="stretch_width"), title="all"))
+    tabs.append(Panel(child=column(p_all, p_downside, p_all_daily_percent_increase,p_all_rsi,p_macd, sizing_mode="stretch_width"), title="all"))
     
     
     p_years = {}
@@ -766,12 +879,11 @@ args = parser.parse_args()
     
 
 
-
-
-
 all_time = gen_all_time('P1.csv')
 all_time.update(gen_best_fit(all_time))
     
+all_time.update(gen_all_time_downside(all_time))
+
 
 
 each_year = gen_each_year(all_time)
