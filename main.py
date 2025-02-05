@@ -8,9 +8,12 @@ import pandas as pd
 from bokeh.plotting import figure, show
 from bokeh.models import Tabs, Tooltip, Panel
 from bokeh.models import DatetimeTickFormatter
+from bokeh.models import tickers
 from bokeh.layouts import column
+from bokeh.models import RangeTool
 from bokeh.models import BoxAnnotation
 from bokeh.models import LinearAxis, Range1d
+from bokeh.models import RangeSlider
 from  fpdf import FPDF as fpdf
 import time
 from datetime import datetime 
@@ -605,7 +608,7 @@ def gen_bokeh_chart(data_set_id, data_set, each_year):
 
   
     
-    p_all = figure(x_axis_type="datetime", sizing_mode="scale_width", aspect_ratio=11/5 ,title="Multiple line example", x_axis_label="x", y_axis_label="y")
+    p_all = figure(x_axis_type="datetime", sizing_mode="scale_width", aspect_ratio=11/5 ,title="Multiple line example", x_axis_label="x", y_axis_label="y", x_range=(x[0], x[-1]))
 
     # add multiple renderers
     p_all.line(x, data_set['y_values'], legend_label="Value", color="blue", line_width=1)
@@ -626,8 +629,25 @@ def gen_bokeh_chart(data_set_id, data_set, each_year):
     
     
     
+    
+    range_slider = RangeSlider(
+        title="Adjust y-axis range",
+        start=0,
+        end=max(data_set['y_values'])+ (max(data_set['y_values'])*.1),
+        step=1,
+        value=(0,data_set['y_values'][-1]),
+    )
+    range_slider.js_link("value", p_all.y_range, "start", attr_selector=0)
+    range_slider.js_link("value", p_all.y_range, "end", attr_selector=1)
+        
+        
+        
+        
+        
+        
+    
    
-    p_all_daily_percent_increase = figure(x_axis_type="datetime", sizing_mode="scale_width", aspect_ratio=8 ,title="Multiple line example", x_axis_label="x", y_axis_label="y")
+    p_all_daily_percent_increase = figure(x_axis_type="datetime", sizing_mode="scale_width", aspect_ratio=8 ,title="Multiple line example", x_axis_label="x", y_axis_label="y" ,x_range=p_all.x_range)
 
     # add multiple renderers
     p_all_daily_percent_increase.line(x, data_set['daily_percent_increase'], legend_label="Value", color="blue", line_width=1)
@@ -646,7 +666,7 @@ def gen_bokeh_chart(data_set_id, data_set, each_year):
     
     
     
-    p_all_rsi = figure(x_axis_type="datetime", sizing_mode="scale_width", aspect_ratio=8, title="Multiple line example", x_axis_label="x", y_axis_label="y")
+    p_all_rsi = figure(x_axis_type="datetime", sizing_mode="scale_width", aspect_ratio=8, title="Multiple line example", x_axis_label="x", y_axis_label="y" ,x_range=p_all.x_range)
 
     # add multiple renderers
     p_all_rsi.line(x, data_set['rsi'], legend_label="RSI", color="blue", line_width=1)
@@ -673,7 +693,7 @@ def gen_bokeh_chart(data_set_id, data_set, each_year):
     
     
     
-    p_macd = figure(x_axis_type="datetime", sizing_mode="scale_width", aspect_ratio=8, title="MACD", x_axis_label="x", y_axis_label="y")
+    p_macd = figure(x_axis_type="datetime", sizing_mode="scale_width", aspect_ratio=8, title="MACD", x_axis_label="x", y_axis_label="y" ,x_range=p_all.x_range)
 
     # add multiple renderers
 
@@ -695,9 +715,9 @@ def gen_bokeh_chart(data_set_id, data_set, each_year):
 
   
     
-    p_downside = figure(x_axis_type="datetime", sizing_mode="scale_width", aspect_ratio=8 ,title="Multiple line example", x_axis_label="x", y_axis_label="y")
+    p_downside = figure(x_axis_type="datetime", sizing_mode="scale_width", aspect_ratio=8 ,title="Multiple line example", x_axis_label="x", y_axis_label="y" ,x_range=p_all.x_range)
 
-
+    
 
     # Setting the second y axis range name and range
     p_downside.extra_y_ranges = {"foo": Range1d(start=-0, end=25)}
@@ -709,11 +729,15 @@ def gen_bokeh_chart(data_set_id, data_set, each_year):
 
 
     # add multiple renderers
-    p_downside.line(x, data_set['downside'], legend_label="Value", color="blue", line_width=1)
-    p_downside.line(x, data_set['downside_percent'], legend_label="Value", color="green", line_width=1 , y_range_name="foo")    
+    p_downside.line(x, data_set['downside'], legend_label="Downside", color="blue", line_width=1)
+    p_downside.line(x, data_set['downside_percent'], legend_label="Downside Percent", color="green", line_width=1 , y_range_name="foo")    
 
         
-    p_downside.xaxis[0].formatter = DatetimeTickFormatter(months="%b %Y")
+    p_downside.xaxis[0].formatter = DatetimeTickFormatter(days=["%m - %Y"], months=["%m - %Y"],)
+    
+    p_downside.xaxis.ticker = tickers.MonthsTicker(months=list(range(0, 13, 1)))
+    p_downside.xaxis.major_label_orientation = 0.9
+    
     
     p_downside.legend.click_policy="hide"
     p_downside.legend.location = "top_left"    
@@ -729,12 +753,36 @@ def gen_bokeh_chart(data_set_id, data_set, each_year):
 
 
 
+    select = figure(title="Drag the middle and edges of the selection box to change the range above",
+                    height=130, width=800, 
+                    x_axis_type="datetime", y_axis_type=None,
+                    tools="", toolbar_location=None, background_fill_color="#efefef")
+
+    range_tool = RangeTool(x_range=p_all.x_range)
+    range_tool.overlay.fill_color = "navy"
+    range_tool.overlay.fill_alpha = 0.2
+
+    select.line(x, data_set['y_values'])
+    select.ygrid.grid_line_color = None
+    select.add_tools(range_tool)
+
+
+
+
+
+
+
+
+
+
+
+
 
     
     
     
     
-    tabs.append(Panel(child=column(p_all, p_downside, p_all_daily_percent_increase,p_all_rsi,p_macd, sizing_mode="stretch_width"), title="all"))
+    tabs.append(Panel(child=column(p_all,range_slider, select, p_downside, p_all_daily_percent_increase,p_all_rsi,p_macd, sizing_mode="stretch_width"), title="all"))
     
     
     p_years = {}
