@@ -715,12 +715,12 @@ def gen_bokeh_chart(data_set_id, data_set, each_year):
 
   
     
-    p_downside = figure(x_axis_type="datetime", sizing_mode="scale_width", aspect_ratio=8 ,title="Multiple line example", x_axis_label="x", y_axis_label="y" ,x_range=p_all.x_range)
+    p_downside = figure(x_axis_type="datetime", sizing_mode="scale_width", aspect_ratio=8 ,title="Multiple line example", x_axis_label="x", y_axis_label="y" ,x_range=p_all.x_range , y_range=(-100,max(data_set['downside'])*1.05))
 
     
 
     # Setting the second y axis range name and range
-    p_downside.extra_y_ranges = {"foo": Range1d(start=-0, end=25)}
+    p_downside.extra_y_ranges = {"foo": Range1d(start=-1, end=25)}
 
     # Adding the second axis to the plot.  
     p_downside.add_layout(LinearAxis(y_range_name="foo"), 'right')
