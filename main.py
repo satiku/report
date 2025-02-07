@@ -636,6 +636,7 @@ def gen_bokeh_chart(data_set_id, data_set, each_year):
         end=max(data_set['y_values'])+ (max(data_set['y_values'])*.1),
         step=1,
         value=(0,data_set['y_values'][-1]),
+        margin=(5,80,5,80)
     )
     range_slider.js_link("value", p_all.y_range, "start", attr_selector=0)
     range_slider.js_link("value", p_all.y_range, "end", attr_selector=1)
@@ -647,7 +648,7 @@ def gen_bokeh_chart(data_set_id, data_set, each_year):
         
     
    
-    p_all_daily_percent_increase = figure(x_axis_type="datetime", sizing_mode="scale_width", aspect_ratio=8 ,title="Multiple line example", x_axis_label="x", y_axis_label="y" ,x_range=p_all.x_range)
+    p_all_daily_percent_increase = figure(x_axis_type="datetime", sizing_mode="scale_width", aspect_ratio=8 ,title="Multiple line example", x_axis_label="x", y_axis_label="y" ,x_range=p_all.x_range , y_range=(-5,5))
 
     # add multiple renderers
     p_all_daily_percent_increase.line(x, data_set['daily_percent_increase'], legend_label="Value", color="blue", line_width=1)
@@ -715,7 +716,7 @@ def gen_bokeh_chart(data_set_id, data_set, each_year):
 
   
     
-    p_downside = figure(x_axis_type="datetime", sizing_mode="scale_width", aspect_ratio=8 ,title="Multiple line example", x_axis_label="x", y_axis_label="y" ,x_range=p_all.x_range , y_range=(-100,max(data_set['downside'])*1.05))
+    p_downside = figure(x_axis_type="datetime", sizing_mode="scale_width", aspect_ratio=8 ,title="Multiple line example", x_axis_label="x", y_axis_label="y" ,x_range=p_all.x_range , y_range=(-100,2500))
 
     
 
@@ -926,12 +927,14 @@ args = parser.parse_args()
     
     
 
+all_start_time = time.perf_counter()
 
 all_time = gen_all_time('P1.csv')
 all_time.update(gen_best_fit(all_time))
     
 all_time.update(gen_all_time_downside(all_time))
 
+print(time.perf_counter() - all_start_time)
 
 
 each_year = gen_each_year(all_time)
