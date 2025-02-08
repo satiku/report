@@ -14,12 +14,15 @@ from bokeh.models import RangeTool
 from bokeh.models import BoxAnnotation
 from bokeh.models import LinearAxis, Range1d
 from bokeh.models import RangeSlider
+from bokeh.models import ColumnDataSource, DataTable, TableColumn
 from  fpdf import FPDF as fpdf
 import time
 from datetime import datetime 
+from datetime import timedelta 
 from matplotlib.dates import ( 
-    DateFormatter, AutoDateLocator, AutoDateFormatter, datestr2num 
+    DateFormatter, AutoDateLocator, AutoDateFormatter, date2num 
 ) 
+from scipy.optimize import curve_fit
 
 
 def moving_average(window, inputValue):
@@ -36,6 +39,12 @@ def moving_average(window, inputValue):
 
     return average_y
 
+
+def exponential_func(x, a, b, c):
+    return a * np.exp(b * x) + c
+
+def log_exponential_func(x, lna, b, c):
+    return  lna + b * x  
 
 
 def gen_all_time(file):
@@ -66,7 +75,7 @@ def gen_all_time(file):
                 if previous_value == 0 : 
                     previous_value = float(row[2])
 
-                all_time['x_values'].append(row[1].split(" ")[0])
+                all_time['x_values'].append( datetime.strptime(row[1].split(" ")[0], '%Y-%m-%d'))
                 all_time['y_values'].append(float(row[2]))
                
 
@@ -136,7 +145,7 @@ def gen_each_year(all_time):
 
     for index, value in enumerate(all_time['y_values']) :
 
-        year =all_time['x_values'][index].split(" ")[0].split("-")[0]
+        year =all_time['x_values'][index].year
         
         if year not in each_year:
             each_year[year] = {}
@@ -200,7 +209,7 @@ def gen_all_time_high(all_time):
 
         if value > cycle_high : 
             
-            if cycle_high != cycle_low and index != 0 and cycle_low_index - cycle_high_index > 2:
+            if cycle_high != cycle_low and index != 0 and cycle_low_index - cycle_high_index >= 2:
                 item = {}
                 
                 
@@ -278,8 +287,8 @@ def gen_all_time_downside(all_time):
             
             
             
-            all_time_downside['downside'].append(round(cycle_high - value ,3) ) 
-            all_time_downside['downside_percent'].append(round((((cycle_high - value)/cycle_high)*100),3)) 
+            all_time_downside['downside'].append(round(cycle_high - value ,3) * -1 ) 
+            all_time_downside['downside_percent'].append(round((((cycle_high - value)/cycle_high)*100),3) * -1 ) 
   
     
     return all_time_downside
@@ -310,7 +319,7 @@ def gen_best_fit(data_set):
 
 
 
-    converted_dates = datestr2num([ datetime.strptime(day, '%Y-%m-%d').strftime('%m/%d/%Y') for day in data_set['x_values'] ]) 
+    converted_dates = date2num(data_set['x_values']) 
 
 
     x = converted_dates
@@ -361,6 +370,25 @@ def gen_best_fit(data_set):
     best_fit['theta_fit_list_2'] = theta_fit_list_2   
     
     
+    
+    
+    # Initial guess for the parameters
+    p0 = (1, 1, 1)  # a, b, c
+
+
+    y_transformed = np.log(np.maximum(np.array(y) - 1, 1e-10))
+    # Fit the data using curve_fit
+    params, cov = curve_fit(log_exponential_func, x, y_transformed, p0)
+    lna, b, c = params
+    a = np.exp(lna)
+            
+    x_fit = np.linspace(min(x), max(x), len(x))
+    
+    y_fit = exponential_func(x_fit, a, b, c)
+
+    
+    
+    best_fit['best_fit_exp'] = y_fit
     return(best_fit)
 
 
@@ -601,28 +629,35 @@ def gen_bokeh_chart(data_set_id, data_set, each_year):
     
     tabs = []
     
-    x = [ datetime.strptime(day, '%Y-%m-%d') for day in data_set['x_values'] ]
-#    converted_dates = [ datetime.strptime(day, '%Y-%m-%d').date() for day in data_set['x_values'] ]
 
 
-
-  
+    date_buffer = int((data_set['x_values'][-1] - data_set['x_values'][0]).days * 0.025)
     
-    p_all = figure(x_axis_type="datetime", sizing_mode="scale_width", aspect_ratio=11/5 ,title="Multiple line example", x_axis_label="x", y_axis_label="y", x_range=(x[0], x[-1]))
+    p_all = figure(
+        x_axis_type="datetime", 
+        sizing_mode="scale_width", 
+        aspect_ratio=11/5 ,
+        title="Value", 
+        x_axis_label="x", 
+        y_axis_label="y", 
+        x_range=(data_set['x_values'][0] - timedelta(days = date_buffer), data_set['x_values'][-1] + timedelta(days = date_buffer))
+        )
 
     # add multiple renderers
-    p_all.line(x, data_set['y_values'], legend_label="Value", color="blue", line_width=1)
+    p_all.line(data_set['x_values'], data_set['y_values'], legend_label="Value", color="blue", line_width=1)
     
-    p_all.line(x, data_set['average_y_5'] , legend_label="SMA 5", color="orange", line_width=1)
-    p_all.line(x, data_set['average_y_20'], legend_label="SMA 20", color="green", line_width=1)
-    p_all.line(x, data_set['average_y_60'], legend_label="SMA 60", color="red", line_width=1)
+    p_all.line(data_set['x_values'], data_set['average_y_5'] , legend_label="SMA 5", color="orange", line_width=1)
+    p_all.line(data_set['x_values'], data_set['average_y_20'], legend_label="SMA 20", color="green", line_width=1)
+    p_all.line(data_set['x_values'], data_set['average_y_60'], legend_label="SMA 60", color="red", line_width=1)
     # show the results
     
-    p_all.line(x, data_set['best_fit_line'], legend_label="linear", color="purple", line_width=1)
-    p_all.line(x, data_set['theta_fit_list_2'], legend_label="poly 2", color="gold", line_width=1)    
+    p_all.line(data_set['x_values'], data_set['best_fit_line'], legend_label="linear", color="purple", line_width=1)
+    p_all.line(data_set['x_values'], data_set['theta_fit_list_2'], legend_label="poly 2", color="gold", line_width=1)
+    p_all.line(data_set['x_values'], data_set['best_fit_exp'], legend_label="exp", color="brown", line_width=1)        
   
         
-    p_all.xaxis[0].formatter = DatetimeTickFormatter(months="%b %Y")
+    p_all.xaxis.ticker = tickers.MonthsTicker(months=list(range(0, 13, 1)))
+    p_all.xaxis.major_label_orientation = 0.9
     
     p_all.legend.click_policy="hide"
     p_all.legend.location = "top_left"    
@@ -648,18 +683,25 @@ def gen_bokeh_chart(data_set_id, data_set, each_year):
         
     
    
-    p_all_daily_percent_increase = figure(x_axis_type="datetime", sizing_mode="scale_width", aspect_ratio=8 ,title="Multiple line example", x_axis_label="x", y_axis_label="y" ,x_range=p_all.x_range , y_range=(-5,5))
+    p_all_daily_percent_increase = figure(
+        x_axis_type="datetime", 
+        sizing_mode="scale_width", 
+        aspect_ratio= 10,
+        title="Daily Percent Increase", 
+        y_axis_label="y" ,
+        x_range=p_all.x_range , 
+        y_range=(-5,5))
 
     # add multiple renderers
-    p_all_daily_percent_increase.line(x, data_set['daily_percent_increase'], legend_label="Value", color="blue", line_width=1)
+    p_all_daily_percent_increase.line(data_set['x_values'], data_set['daily_percent_increase'], legend_label="Value", color="blue", line_width=1)
     
-    p_all_daily_percent_increase.line(x, data_set['daily_percent_increase_ma_5'] , legend_label="SMA 5", color="orange", line_width=1)
-    p_all_daily_percent_increase.line(x, data_set['daily_percent_increase_ma_20'], legend_label="SMA 20", color="green", line_width=1)
-    p_all_daily_percent_increase.line(x, data_set['daily_percent_increase_ma_60'], legend_label="SMA 60", color="red", line_width=1)
-    p_all_daily_percent_increase.line(x, data_set['daily_percent_increase_ma_250'], legend_label="SMA 250", color="purple", line_width=1)
+    p_all_daily_percent_increase.line(data_set['x_values'], data_set['daily_percent_increase_ma_5'] , legend_label="SMA 5", color="orange", line_width=1)
+    p_all_daily_percent_increase.line(data_set['x_values'], data_set['daily_percent_increase_ma_20'], legend_label="SMA 20", color="green", line_width=1)
+    p_all_daily_percent_increase.line(data_set['x_values'], data_set['daily_percent_increase_ma_60'], legend_label="SMA 60", color="red", line_width=1)
+    p_all_daily_percent_increase.line(data_set['x_values'], data_set['daily_percent_increase_ma_250'], legend_label="SMA 250", color="purple", line_width=1)
 
-        
-    p_all_daily_percent_increase.xaxis[0].formatter = DatetimeTickFormatter(months="%b %Y")
+    p_all_daily_percent_increase.xaxis.ticker = tickers.MonthsTicker(months=list(range(0, 13, 1)))    
+    p_all_daily_percent_increase.xaxis.major_label_text_font_size = '0pt'
     
     p_all_daily_percent_increase.legend.click_policy="hide"
     p_all_daily_percent_increase.legend.location = "top_left"    
@@ -667,19 +709,26 @@ def gen_bokeh_chart(data_set_id, data_set, each_year):
     
     
     
-    p_all_rsi = figure(x_axis_type="datetime", sizing_mode="scale_width", aspect_ratio=8, title="Multiple line example", x_axis_label="x", y_axis_label="y" ,x_range=p_all.x_range)
+    p_all_rsi = figure(
+        x_axis_type="datetime", 
+        sizing_mode="scale_width", 
+        aspect_ratio=10, 
+        title="RSI", 
+        y_axis_label="y" ,
+        x_range=p_all.x_range,
+        y_range=(0,100),
+        )
 
     # add multiple renderers
-    p_all_rsi.line(x, data_set['rsi'], legend_label="RSI", color="blue", line_width=1)
+    p_all_rsi.line(data_set['x_values'], data_set['rsi'], legend_label="RSI", color="blue", line_width=1)
     
 
     p_all_rsi.add_layout(BoxAnnotation(top=40, fill_alpha=0.1, fill_color='green', line_color='green'))
     p_all_rsi.add_layout(BoxAnnotation(bottom=80, fill_alpha=0.1, fill_color='red', line_color='red'))
 
 
-
-        
-    p_all_rsi.xaxis[0].formatter = DatetimeTickFormatter(months="%b %Y")
+    p_all_rsi.xaxis.ticker = tickers.MonthsTicker(months=list(range(0, 13, 1)))
+    p_all_rsi.xaxis.major_label_text_font_size = '0pt'
     
     p_all_rsi.legend.click_policy="hide"
     p_all_rsi.legend.location = "top_left"    
@@ -694,17 +743,20 @@ def gen_bokeh_chart(data_set_id, data_set, each_year):
     
     
     
-    p_macd = figure(x_axis_type="datetime", sizing_mode="scale_width", aspect_ratio=8, title="MACD", x_axis_label="x", y_axis_label="y" ,x_range=p_all.x_range)
+    p_macd = figure(x_axis_type="datetime", sizing_mode="scale_width", aspect_ratio=7, title="MACD", x_axis_label="x", y_axis_label="y" ,x_range=p_all.x_range)
 
     # add multiple renderers
 
-    p_macd.line(x, data_set['average_y_5_20']     , legend_label="Running average 5 - 20"  ,   color="green" , line_width=1 )
-#    plt.plot_date(x, data_set['average_y_5_60']  , legend_label='Running average 5 - 60'   , color='orange' , line_width=1 )
-    p_macd.line(x, data_set['average_y_20_60']    , legend_label="Running average 20 - 60"   , color="red"   , line_width=1     )
+    p_macd.line(data_set['x_values'], data_set['average_y_5_20']     , legend_label="Running average 5 - 20"  ,   color="green" , line_width=1 )
+#    plt.plot_date(data_set['x_values'], data_set['average_y_5_60']  , legend_label='Running average 5 - 60'   , color='orange' , line_width=1 )
+    p_macd.line(data_set['x_values'], data_set['average_y_20_60']    , legend_label="Running average 20 - 60"   , color="red"   , line_width=1     )
 
 
         
-    p_macd.xaxis[0].formatter = DatetimeTickFormatter(months="%b %Y")
+    p_macd.xaxis[0].formatter = DatetimeTickFormatter(days=["%m - %Y"], months=["%m - %Y"],)
+    
+    p_macd.xaxis.ticker = tickers.MonthsTicker(months=list(range(0, 13, 1)))
+    p_macd.xaxis.major_label_orientation = 0.9
     
     p_macd.legend.click_policy="hide"
     p_macd.legend.location = "top_left"    
@@ -716,12 +768,19 @@ def gen_bokeh_chart(data_set_id, data_set, each_year):
 
   
     
-    p_downside = figure(x_axis_type="datetime", sizing_mode="scale_width", aspect_ratio=8 ,title="Multiple line example", x_axis_label="x", y_axis_label="y" ,x_range=p_all.x_range , y_range=(-100,2500))
+    p_downside = figure(x_axis_type="datetime", 
+        sizing_mode="scale_width", 
+        aspect_ratio=10 ,
+        title="Downside", 
+        y_axis_label="y" ,
+        x_range=p_all.x_range , 
+        y_range=(-2500, 100)
+        )
 
     
 
     # Setting the second y axis range name and range
-    p_downside.extra_y_ranges = {"foo": Range1d(start=-1, end=25)}
+    p_downside.extra_y_ranges = {"foo": Range1d(start=-25, end=1)}
 
     # Adding the second axis to the plot.  
     p_downside.add_layout(LinearAxis(y_range_name="foo"), 'right')
@@ -730,18 +789,23 @@ def gen_bokeh_chart(data_set_id, data_set, each_year):
 
 
     # add multiple renderers
-    p_downside.line(x, data_set['downside'], legend_label="Downside", color="blue", line_width=1)
-    p_downside.line(x, data_set['downside_percent'], legend_label="Downside Percent", color="green", line_width=1 , y_range_name="foo")    
+    p_downside.line(data_set['x_values'], data_set['downside'], legend_label="Downside", color="blue", line_width=1)
+    p_downside.line(data_set['x_values'], data_set['downside_percent'],
+        legend_label="Downside Percent", 
+        color="green", 
+        line_width=1 , 
+        y_range_name="foo"
+        )    
 
         
     p_downside.xaxis[0].formatter = DatetimeTickFormatter(days=["%m - %Y"], months=["%m - %Y"],)
     
     p_downside.xaxis.ticker = tickers.MonthsTicker(months=list(range(0, 13, 1)))
-    p_downside.xaxis.major_label_orientation = 0.9
+    p_downside.xaxis.major_label_text_font_size = '0pt'
     
     
     p_downside.legend.click_policy="hide"
-    p_downside.legend.location = "top_left"    
+    p_downside.legend.location = "bottom_left"    
     
 
 
@@ -763,7 +827,7 @@ def gen_bokeh_chart(data_set_id, data_set, each_year):
     range_tool.overlay.fill_color = "navy"
     range_tool.overlay.fill_alpha = 0.2
 
-    select.line(x, data_set['y_values'])
+    select.line(data_set['x_values'], data_set['y_values'])
     select.ygrid.grid_line_color = None
     select.add_tools(range_tool)
 
@@ -771,10 +835,46 @@ def gen_bokeh_chart(data_set_id, data_set, each_year):
 
 
 
+    each_year_stats = {}
+    
+    each_year_stats['year'] = []
+    each_year_stats['slope'] = []
+    each_year_stats['r2'] = []
+    each_year_stats['percent_increase'] = []
+    each_year_stats['percent_increase_daily_avg'] = []
+    each_year_stats['total_days'] = []
+
+    
+    for year in each_year:
+        
+        
+            each_year_stats['year'].append(year) 
+            each_year_stats['slope'].append(each_year[year]['slope'])
+            each_year_stats['r2'].append(each_year[year]['r2'])
+            each_year_stats['percent_increase'].append(each_year[year]['percent_increase'])
+            each_year_stats['percent_increase_daily_avg'].append(each_year[year]['percent_increase_daily_avg'])
+            each_year_stats['total_days'].append(len(each_year[year]['y_values']))
+        
+      
+    source = ColumnDataSource(each_year_stats)
 
 
-
-
+    each_year_stats_columns = [
+            TableColumn(field="year", title="Date"),
+            TableColumn(field="slope", title="slope"),
+            TableColumn(field="r2", title="r2"),
+            TableColumn(field="percent_increase", title="percent_increase"),
+            TableColumn(field="percent_increase_daily_avg", title="percent_increase_daily_avg"),
+            TableColumn(field="total_days", title="total_days"),
+        ]
+    each_year_stats_data_table = DataTable(
+        source=source, 
+        columns=each_year_stats_columns, 
+        width=400, 
+        height=280 , 
+        index_position = None , 
+        margin=(5,80,5,80),
+        )
 
 
 
@@ -783,7 +883,13 @@ def gen_bokeh_chart(data_set_id, data_set, each_year):
     
     
     
-    tabs.append(Panel(child=column(p_all,range_slider, select, p_downside, p_all_daily_percent_increase,p_all_rsi,p_macd, sizing_mode="stretch_width"), title="all"))
+    tabs.append(Panel(child=column(p_all,range_slider, select, p_downside, p_all_daily_percent_increase,p_all_rsi , p_macd,each_year_stats_data_table, sizing_mode="stretch_width"), title="all"))
+    
+    
+    
+    
+    
+    
     
     
     p_years = {}
@@ -794,18 +900,16 @@ def gen_bokeh_chart(data_set_id, data_set, each_year):
 
         
         
-        x = [ datetime.strptime(day, '%Y-%m-%d') for day in each_year[year]['x_values'] ]
-        
         p_years['year'] = figure(x_axis_type="datetime", width=chart_width, height=chart_height,title="Multiple line example", x_axis_label="x", y_axis_label="y")
         
         
         
         # add multiple renderers
-        p_years['year'].line(x, each_year[year]['y_values'], legend_label="Value", color="blue", line_width=1)
+        p_years['year'].line(each_year[year]['x_values'], each_year[year]['y_values'], legend_label="Value", color="blue", line_width=1)
         
-        p_years['year'].line(x, each_year[year]['average_y_5'] , legend_label="SMA 5", color="orange", line_width=1)
-        p_years['year'].line(x, each_year[year]['average_y_20'], legend_label="SMA 20", color="green", line_width=1)
-        p_years['year'].line(x, each_year[year]['average_y_60'], legend_label="SMA 60", color="red", line_width=1)
+        p_years['year'].line(each_year[year]['x_values'], each_year[year]['average_y_5'] , legend_label="SMA 5", color="orange", line_width=1)
+        p_years['year'].line(each_year[year]['x_values'], each_year[year]['average_y_20'], legend_label="SMA 20", color="green", line_width=1)
+        p_years['year'].line(each_year[year]['x_values'], each_year[year]['average_y_60'], legend_label="SMA 60", color="red", line_width=1)
         # show the results
         
         p_years['year'].xaxis[0].formatter = DatetimeTickFormatter(months="%b %Y")
@@ -813,7 +917,7 @@ def gen_bokeh_chart(data_set_id, data_set, each_year):
         p_years['year'].legend.click_policy="hide"
         p_years['year'].legend.location = "top_left"    
     
-        tabs.append(Panel(child=p_years['year'], title=year))
+        tabs.append(Panel(child=p_years['year'], title=str(year)))
     
 
 
@@ -826,18 +930,17 @@ def gen_bokeh_chart(data_set_id, data_set, each_year):
 
         
         
-        x = [ datetime.strptime(day, '%Y-%m-%d') for day in each_year[year]['x_values'] ]
-        
+
         p_years['year'] = figure(x_axis_type="datetime", width=chart_width, height=chart_height,title="Multiple line example", x_axis_label="x", y_axis_label="y")
         
         
         
         # add multiple renderers
-        p_years['year'].line(x, each_year[year]['y_values'], legend_label="Value", color="blue", line_width=1)
+        p_years['year'].line(each_year[year]['x_values'], each_year[year]['y_values'], legend_label="Value", color="blue", line_width=1)
         
-        p_years['year'].line(x, each_year[year]['average_y_5'] , legend_label="SMA 5", color="orange", line_width=1)
-        p_years['year'].line(x, each_year[year]['average_y_20'], legend_label="SMA 20", color="green", line_width=1)
-        p_years['year'].line(x, each_year[year]['average_y_60'], legend_label="SMA 60", color="red", line_width=1)
+        p_years['year'].line(each_year[year]['x_values'], each_year[year]['average_y_5'] , legend_label="SMA 5", color="orange", line_width=1)
+        p_years['year'].line(each_year[year]['x_values'], each_year[year]['average_y_20'], legend_label="SMA 20", color="green", line_width=1)
+        p_years['year'].line(each_year[year]['x_values'], each_year[year]['average_y_60'], legend_label="SMA 60", color="red", line_width=1)
         # show the results
         
         p_years['year'].xaxis[0].formatter = DatetimeTickFormatter(months="%b %Y")
@@ -846,14 +949,9 @@ def gen_bokeh_chart(data_set_id, data_set, each_year):
         p_years['year'].legend.location = "top_left"
     
 
-        tabs.append(Panel(child=p_years['year'], title=year+"-YTD"))
+        tabs.append(Panel(child=p_years['year'], title=str(year)+"-YTD"))
     
 
-
-
-
-    x = [ datetime.strptime(day, '%Y-%m-%d') for day in data_set['x_values'][-250:] ]
-#    converted_dates = [ datetime.strptime(day, '%Y-%m-%d').date() for day in data_set['x_values'] ]
 
 
 
@@ -862,15 +960,15 @@ def gen_bokeh_chart(data_set_id, data_set, each_year):
     p_all = figure(x_axis_type="datetime", width=chart_width, height=chart_height,title="Multiple line example", x_axis_label="x", y_axis_label="y")
 
     # add multiple renderers
-    p_all.line(x, data_set['y_values'][-250:] , legend_label="Value", color="blue", line_width=1)
+    p_all.line(data_set['x_values'][-250:], data_set['y_values'][-250:] , legend_label="Value", color="blue", line_width=1)
     
-    p_all.line(x, data_set['average_y_5'][-250:]  , legend_label="SMA 5", color="orange", line_width=1)
-    p_all.line(x, data_set['average_y_20'][-250:] , legend_label="SMA 20", color="green", line_width=1)
-    p_all.line(x, data_set['average_y_60'][-250:] , legend_label="SMA 60", color="red", line_width=1)
+    p_all.line(data_set['x_values'][-250:], data_set['average_y_5'][-250:]  , legend_label="SMA 5", color="orange", line_width=1)
+    p_all.line(data_set['x_values'][-250:], data_set['average_y_20'][-250:] , legend_label="SMA 20", color="green", line_width=1)
+    p_all.line(data_set['x_values'][-250:], data_set['average_y_60'][-250:] , legend_label="SMA 60", color="red", line_width=1)
     # show the results
     
-    p_all.line(x, data_set['best_fit_line'][-250:] , legend_label="linear", color="purple", line_width=1)
-    p_all.line(x, data_set['theta_fit_list_2'][-250:] , legend_label="poly 2", color="gold", line_width=1)    
+    p_all.line(data_set['x_values'][-250:], data_set['best_fit_line'][-250:] , legend_label="linear", color="purple", line_width=1)
+    p_all.line(data_set['x_values'][-250:], data_set['theta_fit_list_2'][-250:] , legend_label="poly 2", color="gold", line_width=1)    
   
         
     p_all.xaxis[0].formatter = DatetimeTickFormatter(months="%b %Y")
@@ -968,7 +1066,7 @@ for item in all_time_high :
 
     print('{0:>12s}|  {1:>16.2f}|  {2:>16.2f}|  {3:>12.2f}|  {4:6}|  {5:>8.2f}|'.format(
     
-        item['date'] , 
+        str(item['date'].strftime("%Y-%m-%d")) , 
         item['cycle_high'] , 
         item['cycle_low'] , 
         item['difference'] , 
@@ -995,7 +1093,7 @@ for year in each_year:
     
     
 
-    print('{0:>12s}|  {1:>16.2f}|  {2:>11.3f}|  {3:>12.2f}|  {4:>9.2f}|  {5:10}|'.format(
+    print('{0:>12d}|  {1:>16.2f}|  {2:>11.3f}|  {3:>12.2f}|  {4:>9.2f}|  {5:10}|'.format(
     
         year, 
         each_year[year]['slope'], 
@@ -1125,7 +1223,7 @@ pdf.cell(0, 10, "Generated " ,align='R' )
 pdf.ln()
 
 pdf.set_font("helvetica", "", 12)
-pdf.cell(0, 10, all_time['x_values'][-1] , align='L' )
+pdf.cell(0, 10, str(all_time['x_values'][-1]) , align='L' )
 pdf.cell(0, 10, time.strftime("%Y-%m-%d %H:%M") , align='R' )
 
 pdf.ln(20)
@@ -1152,7 +1250,7 @@ for year in each_year:
         pdf.cell(30, 10, str(time_frame_stats['250']['daily_percent_increase']) )    
         pdf.ln()
     
-    pdf.cell(30, 10, year )
+    pdf.cell(30, 10, str(year) )
     pdf.cell(30, 10, str(each_year[year]['slope']) )
     pdf.cell(30, 10, str(each_year[year]['r2']) )
     pdf.cell(30, 10, str(each_year[year]['percent_increase']) )
