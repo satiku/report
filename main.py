@@ -1,6 +1,5 @@
 import csv
 import argparse
-import matplotlib.pyplot as plt
 import numpy as np
 import os
 import ta
@@ -14,15 +13,15 @@ from bokeh.models import RangeTool
 from bokeh.models import BoxAnnotation
 from bokeh.models import LinearAxis, Range1d
 from bokeh.models import RangeSlider
-from bokeh.models import ColumnDataSource, DataTable, TableColumn
-from  fpdf import FPDF as fpdf
+from bokeh.models import ColumnDataSource, DataTable, TableColumn, Div
+from bokeh.palettes import Dark2_5 as palette
+import itertools
 import time
 from datetime import datetime 
 from datetime import timedelta 
-from matplotlib.dates import ( 
-    DateFormatter, AutoDateLocator, AutoDateFormatter, date2num 
-) 
+from matplotlib.dates import date2num
 from scipy.optimize import curve_fit
+import yfinance as yf
 
 
 def moving_average(window, inputValue):
@@ -197,6 +196,34 @@ def gen_each_year(all_time):
 
 
 
+def gen_year_over_year(all_time):
+
+    year_over_year = {}
+
+    for index, value in enumerate(all_time['y_values']) :
+
+        year =all_time['x_values'][index].year
+        
+        if year not in year_over_year:
+            year_over_year[year] = {}
+
+            year_over_year[year]['x_values'] = []
+            year_over_year[year]['y_values'] = []
+            year_over_year[year]['percent_increase'] = []
+            
+            starting_value = value
+            starting_index = index
+
+        year_over_year[year]['x_values'].append(index - starting_index)
+        year_over_year[year]['y_values'].append(value - starting_value)
+        year_over_year[year]['percent_increase'].append(round((((value - starting_value)/ starting_value )*100),3 ))
+        
+
+    return year_over_year
+
+
+
+
 def gen_all_time_high(all_time):
 
     all_time_high = []
@@ -218,7 +245,7 @@ def gen_all_time_high(all_time):
                 item['cycle_low'] = cycle_low 
                 item['difference'] = round(cycle_high - cycle_low ,3) 
                 item['days'] = cycle_low_index - cycle_high_index 
-                item['percent'] = round((((cycle_high - cycle_low)/cycle_high)*100),3)
+                item['percent'] = round((((cycle_low - cycle_high)/cycle_high)*100),3)
                 
                 all_time_high.append(item)
                 
@@ -235,22 +262,6 @@ def gen_all_time_high(all_time):
     
     
     return all_time_high
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 
@@ -288,27 +299,10 @@ def gen_all_time_downside(all_time):
             
             
             all_time_downside['downside'].append(round(cycle_high - value ,3) * -1 ) 
-            all_time_downside['downside_percent'].append(round((((cycle_high - value)/cycle_high)*100),3) * -1 ) 
+            all_time_downside['downside_percent'].append(round((((value - cycle_high)/cycle_high)*100),3) ) 
   
     
     return all_time_downside
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 
@@ -386,10 +380,85 @@ def gen_best_fit(data_set):
     
     y_fit = exponential_func(x_fit, a, b, c)
 
-    
+
     
     best_fit['best_fit_exp'] = y_fit
     return(best_fit)
+
+
+
+
+
+
+def gen_benchmark(data_set):
+
+    benchmark = {}
+    tickers = ["^GSPC","^IXIC","^DJI"]
+    
+    benchmark['portfolio'] = []
+    benchmark['x_values'] = []    
+    
+    benchmark_data_set = {}
+    
+    print(len(data_set['x_values']))
+
+    benchmark_data_set['x_values'] = data_set['x_values'][-60:]
+    benchmark_data_set['y_values'] = data_set['y_values'][-60:]
+
+    print(len(benchmark_data_set['x_values']))
+
+
+
+
+    data = yf.download(tickers, start = benchmark_data_set['x_values'][0] , auto_adjust=True, progress=False)
+    
+    new_index = pd.date_range(start=data.index.min(), end=data.index.max(), freq='D')
+    data = data.reindex(new_index)
+    
+    data.interpolate(method='time', inplace=True)
+    
+    
+    
+    starting_value = benchmark_data_set['y_values'][0]
+    
+    for index, date in enumerate(benchmark_data_set['x_values']):
+
+        value = benchmark_data_set['y_values'][index]
+        
+        benchmark['portfolio'].append(round((((value - starting_value)/ starting_value )*100),3 ))
+        benchmark['x_values'].append(index)
+
+    
+    
+    for ticker in tickers :
+        benchmark[ticker] = []
+        
+        print(ticker)
+        starting_value = data.loc[benchmark_data_set['x_values'][0], ('Close', ticker)]
+        
+        for date in benchmark_data_set['x_values']:
+
+            value = data.loc[date, ('Close', ticker)]
+            benchmark[ticker].append(round((((value - starting_value)/ starting_value )*100),3 ))
+
+
+
+
+
+
+
+
+    return(benchmark)
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -434,194 +503,7 @@ def gen_time_frame_stats(all_time):
     
 
 
-def gen_best_fit_ma_chart(data_set_id, data_set):
-    
-
-#    
-#    x = np.array(converted_dates)
-#    y = np.array(each_year[year]['y_values'])
-#
-#    
-#    average_y_5 = np.array(each_year[year]['average_y_5'])
-#    average_y_20 = np.array(each_year[year]['average_y_20'])
-#    average_y_60 = np.array(each_year[year]['average_y_60'])
-#    
-#    
-#    average_y_5_20 = np.array(each_year[year]['average_y_5_20'])    
-#    average_y_5_60 = np.array(each_year[year]['average_y_5_60'])    
-#    average_y_20_60 = np.array(each_year[year]['average_y_20_60'])  
-#    
-#    rsi = np.array(each_year[year]['rsi'])
-#    
-    
-    
-    
-    converted_dates = datestr2num([ datetime.strptime(day, '%Y-%m-%d').strftime('%m/%d/%Y') for day in data_set['x_values'] ]) 
-
-
-    x = converted_dates
-
-    
-
-    
-    f = plt.figure()
-    f.set_figheight(20)
-    f.set_figwidth(40)
-
-
-
-
-
-    plt.subplot(3, 1, 1)
-    plt.title(data_set_id)
-    
-    plt.plot_date( x, data_set['y_values']          , fmt='-', marker = ' ' , label='Value')
-    plt.plot_date( x, data_set['best_fit_line']     , fmt='-', marker = ' ' , label='linear')
-    plt.plot_date( x, data_set['theta_fit_list_2']  , fmt='-', marker = ' ' , label='poly 2')      
-    
-    plt.legend()
-    plt.grid(axis = 'both')
-    plt.xticks(rotation=65, horizontalalignment='right')
-
-
-
-
-    plt.subplot(3, 1, 2)
-    plt.title(data_set_id + " - Value")
-
-
-    
-    plt.plot_date( x, data_set['y_values']       , fmt='-', marker = ' ' , label='Value')
-
-    plt.plot_date(x, data_set['average_y_5']     , fmt='--', marker = ' ' , color='orange'  , label='Running average 5')
-    plt.plot_date(x, data_set['average_y_20']    , fmt='--', marker = ' ' , color='green'   , label='Running average 20')
-    plt.plot_date(x, data_set['average_y_60']    , fmt='--', marker = ' ' , color='red'     , label='Running average 60')
-    
-    
-    
-    
-    plt.legend()
-    plt.grid(axis = 'both')
-    plt.xticks(rotation=65, horizontalalignment='right')
-
-
-
-
-
-
-
-
-
-    plt.subplot(3, 1, 3)
-    plt.title(data_set_id + " - Value")
-
-
-    
-    plt.plot_date( x, data_set['daily_percent_increase']       , fmt='-', marker = ' ' , label='Value')
-
-    plt.plot_date(x, data_set['daily_percent_increase_ma_5']     , fmt='--', marker = ' ' , color='orange'  , label='Running average 5')
-    plt.plot_date(x, data_set['daily_percent_increase_ma_20']    , fmt='--', marker = ' ' , color='green'   , label='Running average 20')
-    plt.plot_date(x, data_set['daily_percent_increase_ma_60']    , fmt='--', marker = ' ' , color='red'     , label='Running average 60')
-    plt.plot_date(x, data_set['daily_percent_increase_ma_250']    , fmt='--', marker = ' ' , color='purple'     , label='Running average 60')
-        
-    
-    
-    
-    plt.legend()
-    plt.grid(axis = 'both')
-    plt.xticks(rotation=65, horizontalalignment='right')
-
-
-
-    filename = data_set_id + "/value-ma.png"
-
-
-
-
-
-
-
-
-
-    plt.savefig(filename)
-    plt.clf()
-    
-
-
-def gen_ma_macd_rsi_chart(data_set_id, data_set):
-
-
-    converted_dates = datestr2num([ datetime.strptime(day, '%Y-%m-%d').strftime('%m/%d/%Y') for day in data_set['x_values'] ]) 
-
-
-    x = converted_dates
-
-   
-   
-   
-    plt.subplot(3, 1, 1)
-    plt.title(data_set_id + " - MA")
-
-
-    plt.grid(axis = 'both')
-    plt.xticks(rotation=65, horizontalalignment='right')
-
-
-    plt.plot_date(x, data_set['average_y_5']       , fmt='--', marker = ' ' , color='orange'      , label='Running average 5')
-    plt.plot_date(x, data_set['average_y_20']      , fmt='--', marker = ' ' , color='green'       , label='Running average 20')
-    plt.plot_date(x, data_set['average_y_60']      , fmt='--', marker = ' ' , color='red'         , label='Running average 60')
-
-    plt.legend()
-
-
-
-
-    plt.subplot(3, 1, 2)
-    plt.title(data_set_id + " - MACD")
-
-
-    plt.grid(axis = 'both')
-    plt.xticks(rotation=65, horizontalalignment='right')
-
-    plt.plot_date(x, data_set['average_y_5_20']    , fmt='--', marker = ' ' , color='green'     , label='Running average 5 - 20')
-#    plt.plot_date(x, data_set['average_y_5_60']    , fmt='--', marker = ' ' , color='orange'    , label='Running average 5 - 60')
-    plt.plot_date(x, data_set['average_y_20_60']   , fmt='--', marker = ' ' , color='red'       , label='Running average 20 - 60')
-
-    plt.legend()
-
-
-
-
-
-
-    plt.subplot(3, 1, 3)
-    plt.title(data_set_id + " - RSI")
-
-
-    upper_limit = 80
-    lower_limit = 40
-
-    #plt.figure(figsize=(10, 6))
-    plt.grid(axis = 'both')
-    plt.xticks(rotation=65, horizontalalignment='right')
-    
-    plt.plot_date(x, data_set['rsi'], fmt='-', marker = ' ', label='rsi' )
-    
-    plt.axhline(y=upper_limit, color='r', linestyle='--', label='Overbought (80)')
-    plt.axhline(y=lower_limit, color='g', linestyle='--', label='Oversold (40)')
-
-
-    plt.legend()
-
-
-  
-    filename = data_set_id + "/ma-macd.png"
-
-    plt.savefig(filename)
-    plt.clf()
-
-
-def gen_bokeh_chart(data_set_id, data_set, each_year):
+def gen_bokeh_chart(data_set_id, data_set, each_year, time_frame, year_over_year, benchmarks):
     
     chart_width = 1500
     chart_height = 800
@@ -835,6 +717,14 @@ def gen_bokeh_chart(data_set_id, data_set, each_year):
 
 
 
+# Generate Data Tables 
+#
+#
+#
+#
+    each_year_stats_title = Div(text="<h4>Yearly Stats</h4>", margin=(5,80,5,80),)
+
+
     each_year_stats = {}
     
     each_year_stats['year'] = []
@@ -848,17 +738,18 @@ def gen_bokeh_chart(data_set_id, data_set, each_year):
     for year in each_year:
         
         
-            each_year_stats['year'].append(year) 
-            each_year_stats['slope'].append(each_year[year]['slope'])
-            each_year_stats['r2'].append(each_year[year]['r2'])
-            each_year_stats['percent_increase'].append(each_year[year]['percent_increase'])
-            each_year_stats['percent_increase_daily_avg'].append(each_year[year]['percent_increase_daily_avg'])
-            each_year_stats['total_days'].append(len(each_year[year]['y_values']))
+        each_year_stats['year'].append(year) 
+        each_year_stats['slope'].append(each_year[year]['slope'])
+        each_year_stats['r2'].append(each_year[year]['r2'])
+        each_year_stats['percent_increase'].append(each_year[year]['percent_increase'])
+        each_year_stats['percent_increase_daily_avg'].append(each_year[year]['percent_increase_daily_avg'])
+        each_year_stats['total_days'].append(len(each_year[year]['y_values']))
         
       
     source = ColumnDataSource(each_year_stats)
 
 
+    
     each_year_stats_columns = [
             TableColumn(field="year", title="Date"),
             TableColumn(field="slope", title="slope"),
@@ -866,24 +757,95 @@ def gen_bokeh_chart(data_set_id, data_set, each_year):
             TableColumn(field="percent_increase", title="percent_increase"),
             TableColumn(field="percent_increase_daily_avg", title="percent_increase_daily_avg"),
             TableColumn(field="total_days", title="total_days"),
-        ]
+            ]
+            
     each_year_stats_data_table = DataTable(
         source=source, 
         columns=each_year_stats_columns, 
         width=400, 
         height=280 , 
         index_position = None , 
-        margin=(5,80,5,80),
+        margin=(-5,80,-120,80),
         )
 
 
 
 
+
+    time_frame_stats_title = Div(text="<h4>Time Frame Stats</h4>", margin=(5,80,5,80),)
+
+    time_frame_stats = {}
+
+
+    time_frame_stats['time_frame'] = []
+    time_frame_stats['slope'] = []
+    time_frame_stats['r2'] = []
+    time_frame_stats['percent_increase'] = []
+    time_frame_stats['daily_percent_increase'] = []
+
+
+    
+
+    for time_frame_index in time_frame:     
+        
+        time_frame_stats['time_frame'].append(time_frame_index)
+        time_frame_stats['slope'].append(time_frame[time_frame_index]['slope'])
+        time_frame_stats['r2'].append(time_frame[time_frame_index]['r2'])
+        time_frame_stats['percent_increase'].append(time_frame[time_frame_index]['percent_increase'])
+        time_frame_stats['daily_percent_increase'].append(time_frame[time_frame_index]['daily_percent_increase'])
+
+
+    time_source = ColumnDataSource(time_frame_stats)
+
+    
+    time_frame_stats_columns = [
+            TableColumn(field="time_frame", title="Date"),
+            TableColumn(field="slope", title="slope"),
+            TableColumn(field="r2", title="r2"),
+            TableColumn(field="percent_increase", title="percent_increase"),
+            TableColumn(field="daily_percent_increase", title="daily_percent_increase"),
+            ]
+            
+    time_frame_stats_data_table = DataTable(
+        source=time_source, 
+        columns=time_frame_stats_columns, 
+        width=400, 
+        height=280 , 
+        index_position = None , 
+        margin=(-5,80,-5,80),
+        )
     
     
     
     
-    tabs.append(Panel(child=column(p_all,range_slider, select, p_downside, p_all_daily_percent_increase,p_all_rsi , p_macd,each_year_stats_data_table, sizing_mode="stretch_width"), title="all"))
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    tabs.append(Panel(child=column(
+        p_all,
+        range_slider, 
+        select, 
+        p_downside, 
+        p_all_daily_percent_increase,
+        p_all_rsi, 
+        p_macd, 
+        each_year_stats_title, 
+        each_year_stats_data_table,         
+        time_frame_stats_title, 
+        time_frame_stats_data_table, 
+        sizing_mode="stretch_width"
+        ), title="all"))
     
     
     
@@ -894,7 +856,7 @@ def gen_bokeh_chart(data_set_id, data_set, each_year):
     
     p_years = {}
     
-    for year in list(each_year)[:-1]:
+    for year in list(each_year):
     
         print(year)
 
@@ -917,40 +879,11 @@ def gen_bokeh_chart(data_set_id, data_set, each_year):
         p_years['year'].legend.click_policy="hide"
         p_years['year'].legend.location = "top_left"    
     
-        tabs.append(Panel(child=p_years['year'], title=str(year)))
     
-
-
-
-
-
-    for year in list(each_year)[-1:]:
-    
-        print(year)
-
-        
-        
-
-        p_years['year'] = figure(x_axis_type="datetime", width=chart_width, height=chart_height,title="Multiple line example", x_axis_label="x", y_axis_label="y")
-        
-        
-        
-        # add multiple renderers
-        p_years['year'].line(each_year[year]['x_values'], each_year[year]['y_values'], legend_label="Value", color="blue", line_width=1)
-        
-        p_years['year'].line(each_year[year]['x_values'], each_year[year]['average_y_5'] , legend_label="SMA 5", color="orange", line_width=1)
-        p_years['year'].line(each_year[year]['x_values'], each_year[year]['average_y_20'], legend_label="SMA 20", color="green", line_width=1)
-        p_years['year'].line(each_year[year]['x_values'], each_year[year]['average_y_60'], legend_label="SMA 60", color="red", line_width=1)
-        # show the results
-        
-        p_years['year'].xaxis[0].formatter = DatetimeTickFormatter(months="%b %Y")
-        
-        p_years['year'].legend.click_policy="hide"
-        p_years['year'].legend.location = "top_left"
-    
-
-        tabs.append(Panel(child=p_years['year'], title=str(year)+"-YTD"))
-    
+        if year !=  list(each_year)[-1:] :
+            tabs.append(Panel(child=p_years['year'], title=str(year)))
+        else :
+            tabs.append(Panel(child=p_years['year'], title=str(year)+"-YTD"))
 
 
 
@@ -980,6 +913,96 @@ def gen_bokeh_chart(data_set_id, data_set, each_year):
     tabs.append(Panel(child=p_all, title="last-250"))
 
 
+
+
+
+
+
+
+    
+    #colors has a list of colors which can be used in plots 
+    colors = itertools.cycle(palette) 
+
+    
+    p_year_over_years = figure(width=chart_width, height=chart_height,title="Multiple line example", x_axis_label="x", y_axis_label="y")
+    
+    
+    for index, year in enumerate(list(year_over_year)):
+
+
+    
+        
+
+    
+        if year !=  list(year_over_year)[-1:] :
+            p_year_over_years.line(year_over_year[year]['x_values'], year_over_year[year]['y_values'], legend_label=str(year), color=next(colors), line_width=1)
+        
+        else :
+            p_year_over_years.line(year_over_year[year]['x_values'], year_over_year[year]['y_values'] , legend_label=(str(year) + "-ytd"), color=next(colors), line_width=1)
+        
+        
+        p_year_over_years.legend.click_policy="hide"
+        p_year_over_years.legend.location = "top_left"    
+
+
+
+
+    p_year_over_year_percents = figure(width=chart_width, height=chart_height,title="Year Over Year Percent", x_axis_label="x", y_axis_label="y")
+    
+    
+    for index, year in enumerate(list(year_over_year)):
+    
+
+    
+
+    
+    
+        if year !=  list(year_over_year)[-1:] :
+            p_year_over_year_percents.line(year_over_year[year]['x_values'], year_over_year[year]['percent_increase'], legend_label=str(year), color=next(colors), line_width=1)
+        
+        else :
+            p_year_over_year_percents.line(year_over_year[year]['x_values'], year_over_year[year]['percent_increase'] , legend_label=(str(year) + "-ytd"), color=next(colors), line_width=1)
+        
+        
+        
+        p_year_over_year_percents.legend.click_policy="hide"
+        p_year_over_year_percents.legend.location = "top_left"    
+
+
+
+    tabs.append(Panel(child=column(p_year_over_years, p_year_over_year_percents), title="YoY"))
+
+
+
+
+
+
+
+
+
+
+    p_benchmark = figure(
+        sizing_mode="scale_width", 
+        aspect_ratio=11/5 ,
+        title="Value", 
+        x_axis_label="x", 
+        y_axis_label="y", 
+        )
+
+    # add multiple renderers
+    p_benchmark.line(benchmarks['x_values'], benchmarks['portfolio'], legend_label="Value", color="blue", line_width=1)
+    
+    p_benchmark.line(benchmarks['x_values'], benchmarks['^GSPC'] , legend_label="SP-500", color="orange", line_width=1)
+    p_benchmark.line(benchmarks['x_values'], benchmarks['^IXIC'], legend_label="NASDAQ", color="green", line_width=1)
+    p_benchmark.line(benchmarks['x_values'], benchmarks['^DJI'], legend_label="DJI", color="red", line_width=1)
+    # show the results
+    
+    
+    p_benchmark.legend.click_policy="hide"
+    p_benchmark.legend.location = "top_left"    
+    
+
+    tabs.append(Panel(child=p_benchmark, title="YoY"))
 
 
 
@@ -1032,6 +1055,8 @@ all_time.update(gen_best_fit(all_time))
     
 all_time.update(gen_all_time_downside(all_time))
 
+benchmarks = gen_benchmark(all_time)
+
 print(time.perf_counter() - all_start_time)
 
 
@@ -1042,6 +1067,9 @@ all_time_high = gen_all_time_high(all_time)
 
 
 time_frame_stats = gen_time_frame_stats(all_time)
+
+
+year_over_year = gen_year_over_year(all_time)
 
 
 for year in each_year:
@@ -1078,264 +1106,21 @@ for item in all_time_high :
 
 
 
-print()
-print()
-print("=============================")
-print(" yearly stats")
-print("=============================")
-print()
-print("------------+------------------+-------------+--------------+-----------+------------+")
-print("        year|             slope|           r2|    % increase|    daily %|  total days|")
-print("------------+------------------+-------------+--------------+-----------+------------+")
-
-
-for year in each_year:
-    
-    
-
-    print('{0:>12d}|  {1:>16.2f}|  {2:>11.3f}|  {3:>12.2f}|  {4:>9.2f}|  {5:10}|'.format(
-    
-        year, 
-        each_year[year]['slope'], 
-        each_year[year]['r2'],
-        each_year[year]['percent_increase'],
-        each_year[year]['percent_increase_daily_avg'],
-        len(each_year[year]['y_values'])
-    ))
-  
-
-
-
-print()
-print()
-print("=============================")
-print(" time frame stats")
-print("=============================")
-print()
-print("------------+------------------+------------------+--------------------+-------------+")
-print("  time frame|             slope|                r2|          % increase|      daily %|")
-print("------------+------------------+------------------+--------------------+-------------+")
-
-
-
-
-for time_frame in time_frame_stats: 
-
-    
-    print('{0:>12s}|  {1:>16.2f}|  {2:>16.3f}|  {3:>18.2f}|  {4:11.2f}|'.format(
-    
-        time_frame, 
-        time_frame_stats[time_frame]['slope'], 
-        time_frame_stats[time_frame]['r2'],
-        time_frame_stats[time_frame]['percent_increase'],
-        time_frame_stats[time_frame]['daily_percent_increase']
-    ))
-        
-
-
-
-
-
-
-
-
-
-print()
-print("=============================")
-print("generating charts")
-print("=============================")
-
-if args.all:
-    print("all_time")
-
-    if not os.path.exists("all_time"):
-        os.makedirs("all_time")
-
-
-    gen_best_fit_ma_chart("all_time", all_time)
-    gen_ma_macd_rsi_chart("all_time", all_time)
-        
-
-
-
-
-if args.years:
-    for year in list(each_year)[:-1]:
-        
-
-        print(year)
-        
-        if not os.path.exists(year):
-            os.makedirs(year)
-
-        
-        
-        gen_best_fit_ma_chart(year, each_year[year])
-        gen_ma_macd_rsi_chart(year, each_year[year])
-        
-    
-
-
-if args.ytd:
-    for year in list(each_year)[-1:]:
-        
-
-        print(year)
-        
-        if not os.path.exists(year):
-            os.makedirs(year)
-
-        
-        
-        gen_best_fit_ma_chart(year, each_year[year])
-        gen_ma_macd_rsi_chart(year, each_year[year])
-        
-        
-          
-
-
-
-
-    
-    
-
-#
-# Generate pdf file 
-#
-
-
-
-pdf = fpdf(orientation="P", unit="mm", format="A4")
- 
-print()
-print("pdf report")
-
-pdf.add_page()
-pdf.set_font("helvetica", "B", 20)
-
-pdf.cell(0, 18, "Report" , 1 , align='C')
-pdf.ln()
-
-pdf.set_font("helvetica", "B", 12)
-pdf.cell(0, 10, "Portfolio Date " , align='L' )
-pdf.cell(0, 10, "Generated " ,align='R' )
-
-pdf.ln()
-
-pdf.set_font("helvetica", "", 12)
-pdf.cell(0, 10, str(all_time['x_values'][-1]) , align='L' )
-pdf.cell(0, 10, time.strftime("%Y-%m-%d %H:%M") , align='R' )
-
-pdf.ln(20)
-
-
-pdf.set_font("helvetica", "B", 12)
-pdf.cell(30, 10, "Year" )
-pdf.cell(30, 10, "Linear slope" )
-pdf.cell(30, 10, "R squared" )
-pdf.cell(30, 10, "% increase" )
-pdf.cell(30, 10, "daily % avg" )
-
-pdf.ln()
-
-for year in each_year:
-    pdf.set_font("helvetica", "", 12)
-    
-    if year == list(each_year)[-1]:
-        print("test")
-        pdf.cell(30, 10, "D-250" )
-        pdf.cell(30, 10, str(time_frame_stats['250']['slope']) )
-        pdf.cell(30, 10, str(time_frame_stats['250']['r2']) )
-        pdf.cell(30, 10, str(time_frame_stats['250']['percent_increase']) )
-        pdf.cell(30, 10, str(time_frame_stats['250']['daily_percent_increase']) )    
-        pdf.ln()
-    
-    pdf.cell(30, 10, str(year) )
-    pdf.cell(30, 10, str(each_year[year]['slope']) )
-    pdf.cell(30, 10, str(each_year[year]['r2']) )
-    pdf.cell(30, 10, str(each_year[year]['percent_increase']) )
-    pdf.cell(30, 10, str(each_year[year]['percent_increase_daily_avg']) )    
-    pdf.ln()
-
-
-
-
-
-
-
-
-
-print("pdf charts")
-
-
-
-
-if args.all:
-    print("all_time")
-
-
-    pdf.add_page()
-    pdf.image('all_time/value-ma.png', w = 200 , h = 250)    
-
-
-    pdf.add_page()
-    pdf.image( 'all_time/ma-macd.png', w = 200 , h = 250)    
-
-
-if args.years:
-    for year in list(each_year)[:-1]:
-
-        print(year)
-        pdf.add_page()
-
-        pdf.set_font("helvetica", "B", 20)
-        pdf.cell(0, 18, year + " Report" , 1 , align='C')
-        pdf.ln()
-
-        pdf.add_page()
-        pdf.image(year + '/value-ma.png', w = 200 , h = 250)    
-
-
-        pdf.add_page()
-        pdf.image(year + '/ma-macd.png', w = 200 , h = 250)    
-
-
-
-if args.ytd:
-    for year in list(each_year)[-1:]:
-
-        print(year)
-        pdf.add_page()
-
-        pdf.set_font("helvetica", "B", 20)
-        pdf.cell(0, 18, year + " Report" , 1 , align='C')
-        pdf.ln()
-
-        pdf.add_page()
-        pdf.image(year + '/value-ma.png', w = 200 , h = 250)    
-
-
-        pdf.add_page()
-        pdf.image(year + '/ma-macd.png', w = 200 , h = 250)    
-
-
-
-pdf.output("report " + time.strftime("%Y-%m-%d %H-%M") + ".pdf")
-pdf.output("report.pdf")
-
-
-
-
-
-
-
 if args.bokeh:
-    print("all_time")
+    
+    print()
+    print("=============================")
+    print("Generating Bokeh")
+    print("=============================")
 
-    if not os.path.exists("all_time"):
-        os.makedirs("all_time")
+
+    bokeh_time = time.perf_counter()
+    
+    gen_bokeh_chart("all_time", all_time , each_year, time_frame_stats, year_over_year, benchmarks)
 
 
-    gen_bokeh_chart("all_time", all_time , each_year)
-#    gen_ma_macd_rsi_chart("all_time", all_time)
-        
+    print(time.perf_counter() - bokeh_time)
+
+
+
+
