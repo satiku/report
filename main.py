@@ -22,6 +22,7 @@ from datetime import timedelta
 from matplotlib.dates import date2num
 from scipy.optimize import curve_fit
 import yfinance as yf
+from statsmodels.tsa.holtwinters import ExponentialSmoothing
 
 
 def moving_average(window, inputValue):
@@ -455,9 +456,36 @@ def gen_benchmark(data_set):
 
 
 
-
-
-
+def gen_forecast(data_set): 
+    
+    forecast_time = 250
+    
+    forcasted_values = {}
+    forcasted_values['x_values'] = []
+    forcasted_values['y_values'] = []
+    
+    date = data_set['x_values'][-1]
+    
+    model = ExponentialSmoothing(data_set['y_values'], seasonal_periods=250, trend='add', seasonal='add')
+    fitted_model = model.fit()    
+    
+    # Forecast for the next 12 months
+    forecast = fitted_model.forecast(steps=forecast_time)
+    
+    forcasted_values['y_values'].extend(list(forecast))
+    
+    
+    for interval in range(forecast_time) :
+        
+        if date.weekday() == 4 :
+            date = date + timedelta(days = 3)
+            forcasted_values['x_values'].append(date)
+        else : 
+            date = date + timedelta(days = 1)
+            forcasted_values['x_values'].append(date)
+        
+        
+    return forcasted_values
 
 
 
@@ -503,7 +531,7 @@ def gen_time_frame_stats(all_time):
     
 
 
-def gen_bokeh_chart(data_set_id, data_set, each_year, time_frame, year_over_year, benchmarks):
+def gen_bokeh_chart(data_set_id, data_set, each_year, time_frame, year_over_year, benchmarks, forecasts):
     
     chart_width = 1500
     chart_height = 800
@@ -650,7 +678,8 @@ def gen_bokeh_chart(data_set_id, data_set, each_year, time_frame, year_over_year
 
   
     
-    p_downside = figure(x_axis_type="datetime", 
+    p_downside = figure(
+        x_axis_type="datetime", 
         sizing_mode="scale_width", 
         aspect_ratio=10 ,
         title="Downside", 
@@ -1002,7 +1031,44 @@ def gen_bokeh_chart(data_set_id, data_set, each_year, time_frame, year_over_year
     p_benchmark.legend.location = "top_left"    
     
 
-    tabs.append(Panel(child=p_benchmark, title="YoY"))
+    tabs.append(Panel(child=p_benchmark, title="Benchmark"))
+
+
+
+
+
+
+
+
+
+
+
+
+    p_forecast = figure(
+        x_axis_type="datetime", 
+        sizing_mode="scale_width", 
+        aspect_ratio=11/5 ,
+        title="Value", 
+        x_axis_label="x", 
+        y_axis_label="y", 
+        )
+
+    # add multiple renderers
+    p_forecast.line(data_set['x_values'], data_set['y_values'], legend_label="Value", color="blue", line_width=1)
+    
+    p_forecast.line(forecasts['x_values'], forecasts['y_values'] , legend_label="Holt-Winters", color="orange", line_width=1)
+
+    # show the results
+    
+    
+    p_forecast.legend.click_policy="hide"
+    p_forecast.legend.location = "top_left"    
+    
+
+    tabs.append(Panel(child=p_forecast, title="Forecast"))
+
+
+
 
 
 
@@ -1056,6 +1122,8 @@ all_time.update(gen_best_fit(all_time))
 all_time.update(gen_all_time_downside(all_time))
 
 benchmarks = gen_benchmark(all_time)
+
+forecasts = gen_forecast(all_time)
 
 print(time.perf_counter() - all_start_time)
 
@@ -1116,7 +1184,7 @@ if args.bokeh:
 
     bokeh_time = time.perf_counter()
     
-    gen_bokeh_chart("all_time", all_time , each_year, time_frame_stats, year_over_year, benchmarks)
+    gen_bokeh_chart("all_time", all_time , each_year, time_frame_stats, year_over_year, benchmarks, forecasts)
 
 
     print(time.perf_counter() - bokeh_time)
