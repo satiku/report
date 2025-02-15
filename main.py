@@ -556,13 +556,15 @@ def gen_bokeh_chart(data_set_id, data_set, each_year, time_frame, year_over_year
     
     
     source = ColumnDataSource(data={
-    'x': data_set['x_values'],
-    'y_value': data_set['y_values'],
-    'y_sma5': data_set['average_y_5'],
-    'y_sma20': data_set['average_y_20'],
-    'y_sma60': data_set['average_y_60']
-    # Add more fields for other lines if needed
-})
+        'x'                     : data_set['x_values'],
+        'y_value'               : data_set['y_values'],
+        'y_sma5'                : data_set['average_y_5'],
+        'y_sma20'               : data_set['average_y_20'],
+        'y_sma60'               : data_set['average_y_60'],
+        'y_best_fit_line'       : data_set['best_fit_line'],
+        'y_theta_fit_list_2'    : data_set['theta_fit_list_2'],
+        'y_best_fit_exp'        : data_set['best_fit_exp'],
+    })
     
     
 
@@ -581,12 +583,15 @@ def gen_bokeh_chart(data_set_id, data_set, each_year, time_frame, year_over_year
 
     hover = HoverTool(
         tooltips=[
-            ("Date", "@x{%F}"),
-            ("Tool", "$y{0,0.00}"),
-            ("Value", "@y_value{0,0.00}"),
-            ("SMA 5", "@y_sma5{0,0.00}"),
-            ("SMA 20", "@y_sma20{0,0.00}"),
-            ("SMA 60", "@y_sma60{0,0.00}"),            
+            ("Date"            , "@x{%F}"),
+            ("Tool"            , "$y{0,0.00}"),
+            ("Value"           , "@y_value{0,0.00}"),
+            ("SMA 5"           , "@y_sma5{0,0.00}"),
+            ("SMA 20"          , "@y_sma20{0,0.00}"),
+            ("SMA 60"          , "@y_sma60{0,0.00}"),
+            ("Linear"          , "@y_best_fit_line{0,0.00}"),
+            ("Polynomial"      , "@y_theta_fit_list_2{0,0.00}"),
+            ("Exponential"     , "@y_best_fit_exp{0,0.00}"),               
         ],
         formatters={'@x': 'datetime'},
         mode='vline'        
@@ -603,12 +608,15 @@ def gen_bokeh_chart(data_set_id, data_set, each_year, time_frame, year_over_year
     
             
     # add multiple renderers
-    p_all.line('x', 'y_value', source=source, legend_label="Value", color="blue", line_width=1, name="Value")
-    p_all.line('x', 'y_sma5', source=source, legend_label="SMA 5", color="orange", line_width=1, name="SMA 5")
-    p_all.line('x', 'y_sma20', source=source, legend_label="SMA 20", color="green", line_width=1, name="SMA 20")
-    p_all.line('x', 'y_sma60', source=source, legend_label="SMA 60", color="red", line_width=1, name="SMA 60")
+    p_all.line('x', 'y_value'             , source=source, legend_label="Value"       , color="blue"    , line_width=1)
+    
+    p_all.line('x', 'y_sma5'              , source=source, legend_label="SMA 5"       , color="orange"  , line_width=1)
+    p_all.line('x', 'y_sma20'             , source=source, legend_label="SMA 20"      , color="green"   , line_width=1)
+    p_all.line('x', 'y_sma60'             , source=source, legend_label="SMA 60"      , color="red"     , line_width=1)
         
-
+    p_all.line('x', 'y_best_fit_line'     , source=source, legend_label="Linear"      , color="purple"  , line_width=1)
+    p_all.line('x', 'y_theta_fit_list_2'  , source=source, legend_label="Polynomial"  , color="gold"    , line_width=1)
+    p_all.line('x', 'y_best_fit_exp'      , source=source, legend_label="Exponential" , color="brown"   , line_width=1)
   
 
 
