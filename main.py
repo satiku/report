@@ -26,6 +26,10 @@ from scipy.optimize import curve_fit
 import yfinance as yf
 from statsmodels.tsa.holtwinters import ExponentialSmoothing
 
+import warnings
+from statsmodels.tools.sm_exceptions import ConvergenceWarning
+from scipy import optimize
+
 
 def moving_average(window, inputValue):
     
@@ -403,12 +407,12 @@ def gen_benchmark(data_set):
     
     benchmark_data_set = {}
     
-    print(len(data_set['x_values']))
 
-    benchmark_data_set['x_values'] = data_set['x_values'][-60:]
-    benchmark_data_set['y_values'] = data_set['y_values'][-60:]
 
-    print(len(benchmark_data_set['x_values']))
+    benchmark_data_set['x_values'] = data_set['x_values'][-20:]
+    benchmark_data_set['y_values'] = data_set['y_values'][-20:]
+
+
 
 
 
@@ -493,8 +497,8 @@ def gen_forecast(data_set):
     modified_data_set['y_values'] = data_set['y_values'][:last_year_index]
     
     
-    model_add = ExponentialSmoothing(modified_data_set['y_values'], seasonal_periods=250, trend='add', seasonal='add' )
-    model_mul = ExponentialSmoothing(modified_data_set['y_values'], seasonal_periods=250, trend='mul', seasonal='mul' )
+    model_add = ExponentialSmoothing(data_set['y_values'], seasonal_periods=250, trend='add', seasonal='add' )
+    model_mul = ExponentialSmoothing(data_set['y_values'], seasonal_periods=250, trend='mul', seasonal='mul' )
     
     this_year_model_add = ExponentialSmoothing(modified_data_set['y_values'], seasonal_periods=250, trend='add', seasonal='add' )
     this_year_model_mul = ExponentialSmoothing(modified_data_set['y_values'], seasonal_periods=250, trend='mul', seasonal='mul' )    
@@ -1220,20 +1224,7 @@ def gen_bokeh_chart(data_set_id, data_set, each_year, time_frame, year_over_year
 
 
 
-
-
-
-
-
-
-
-
-
-    tabs0 = Tabs(tabs=tabs)
-    
-    
-    
-    show(tabs0)
+    return tabs
 
 
 
@@ -1247,33 +1238,89 @@ parser = argparse.ArgumentParser(description="A program to demonstrate optional 
 
 # Define optional arguments
 parser.add_argument("file_path")
-parser.add_argument("--ytd",    action='store_true', help="Run current YTD calculations")
-parser.add_argument("--all",    action='store_true', help="Run all time calculations")
-parser.add_argument("--years",  action='store_true', help="Run all past years calculations")
+parser.add_argument("--silent",    action='store_true', help="Silence warnings")
+
 parser.add_argument("--bokeh",  action='store_true', help="Create Bokeh Charts")
 
 # Parse the arguments
 args = parser.parse_args()
 
+
+if args.silent:
+
+    warnings.filterwarnings("ignore", category=optimize.OptimizeWarning)
+
+    warnings.filterwarnings("ignore", category=ConvergenceWarning)
+
+
     
 file_path = args.file_path
     
-    
-print(file_path)
+print()
+print()
+print("=============================")   
+print("processing ", file_path)
+print("=============================")
+print()
 
 all_start_time = time.perf_counter()
 
+
+print()
+print("=============================")   
+print("Generating base data ")
+
+job_start_time = time.perf_counter()
 all_time = gen_all_time('P1.csv')
 
+print(time.perf_counter() - job_start_time)
+
+
+
+print()
+print("=============================")   
+print("Generating best fit data ")
+
+job_start_time = time.perf_counter()
 all_time.update(gen_best_fit(all_time))
-    
+
+print(time.perf_counter() - job_start_time)
+
+
+
+print()
+print("=============================")   
+print("Generating downside data ")
+
+
+job_start_time = time.perf_counter()
 all_time.update(gen_all_time_downside(all_time))
 
+print(time.perf_counter() - job_start_time)
+
+
+
+print()
+print("=============================")   
+print("Generating benchmark data ")
+
+job_start_time = time.perf_counter()
 benchmarks = gen_benchmark(all_time)
 
+print(time.perf_counter() - job_start_time)
+
+
+
+print()
+print("=============================")   
+print("Generating forecast data ")
+
+job_start_time = time.perf_counter()
 forecasts = gen_forecast(all_time)
 
-print(time.perf_counter() - all_start_time)
+print(time.perf_counter() - job_start_time)
+
+
 
 
 each_year = gen_each_year(all_time)
@@ -1290,12 +1337,16 @@ year_over_year = gen_year_over_year(all_time)
 
 for year in each_year:
     
-    print(len(each_year[year]['x_values']))
-    
     if len(each_year[year]['x_values']) > 5:
         
         each_year[year].update(gen_best_fit(each_year[year]))
-    
+
+
+
+ 
+print(time.perf_counter() - all_start_time)
+
+
 
 print()
 print()
@@ -1336,8 +1387,12 @@ if args.bokeh:
 
     bokeh_time = time.perf_counter()
     
-    gen_bokeh_chart("all_time", all_time , each_year, time_frame_stats, year_over_year, benchmarks, forecasts)
 
+    tabs0 = Tabs(tabs=gen_bokeh_chart("all_time", all_time , each_year, time_frame_stats, year_over_year, benchmarks, forecasts))
+    
+    
+    
+    show(tabs0)
 
 
     print(time.perf_counter() - bokeh_time)
