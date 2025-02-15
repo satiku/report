@@ -1179,16 +1179,10 @@ file_path = args.file_path
     
 print(file_path)
 
-<<<<<<< HEAD
 all_start_time = time.perf_counter()
 
 all_time = gen_all_time('P1.csv')
-=======
 
-
-
-all_time = gen_all_time(file_path)
->>>>>>> 5d57654032e19cf7d2b0f9d39321a56e8d534782
 all_time.update(gen_best_fit(all_time))
     
 all_time.update(gen_all_time_downside(all_time))
@@ -1251,7 +1245,7 @@ for item in all_time_high :
 
 if args.bokeh:
     
-<<<<<<< HEAD
+
     print()
     print("=============================")
     print("Generating Bokeh")
@@ -1262,240 +1256,10 @@ if args.bokeh:
     
     gen_bokeh_chart("all_time", all_time , each_year, time_frame_stats, year_over_year, benchmarks, forecasts)
 
-=======
-    if len(each_year[year]['x_values']) > 5:    
 
-        print('{0:>12s}|  {1:>16.2f}|  {2:>11.3f}|  {3:>12.2f}|  {4:>9.2f}|  {5:10}|'.format(
-        
-            year, 
-            each_year[year]['slope'], 
-            each_year[year]['r2'],
-            each_year[year]['percent_increase'],
-            each_year[year]['percent_increase_daily_avg'],
-            len(each_year[year]['y_values'])
-        ))
-  
->>>>>>> 5d57654032e19cf7d2b0f9d39321a56e8d534782
 
     print(time.perf_counter() - bokeh_time)
 
 
 
 
-<<<<<<< HEAD
-=======
-
-
-for time_frame in time_frame_stats: 
-
-    
-    print('{0:>12s}|  {1:>16.2f}|  {2:>16.3f}|  {3:>18.2f}|  {4:11.2f}|'.format(
-    
-        time_frame, 
-        time_frame_stats[time_frame]['slope'], 
-        time_frame_stats[time_frame]['r2'],
-        time_frame_stats[time_frame]['percent_increase'],
-        time_frame_stats[time_frame]['daily_percent_increase']
-    ))
-        
-
-
-
-
-
-
-
-
-
-print()
-print("=============================")
-print("generating charts")
-print("=============================")
-
-if args.all:
-    print("all_time")
-
-    if not os.path.exists("all_time"):
-        os.makedirs("all_time")
-
-
-    gen_best_fit_ma_chart("all_time", all_time)
-    gen_ma_macd_rsi_chart("all_time", all_time)
-        
-
-
-
-
-if args.years:
-    for year in list(each_year)[:-1]:
-        
-
-        print(year)
-        
-        if not os.path.exists(year):
-            os.makedirs(year)
-
-        
-        
-        gen_best_fit_ma_chart(year, each_year[year])
-        gen_ma_macd_rsi_chart(year, each_year[year])
-        
-    
-
-
-if args.ytd:
-    for year in list(each_year)[-1:]:
-        
-        if len(each_year[year]['x_values']) > 5:
-        
-            print(year)
-            
-            if not os.path.exists(year):
-                os.makedirs(year)
-
-            
-            
-            gen_best_fit_ma_chart(year, each_year[year])
-            gen_ma_macd_rsi_chart(year, each_year[year])
-        
-        
-          
-
-
-
-
-    
-    
-
-#
-# Generate pdf file 
-#
-
-
-
-pdf = fpdf(orientation="P", unit="mm", format="A4")
- 
-print()
-print("pdf report")
-
-pdf.add_page()
-pdf.set_font("helvetica", "B", 20)
-
-pdf.cell(0, 18, "Report" , 1 , align='C')
-pdf.ln()
-
-pdf.set_font("helvetica", "B", 12)
-pdf.cell(0, 10, "Portfolio Date " , align='L' )
-pdf.cell(0, 10, "Generated " ,align='R' )
-
-pdf.ln()
-
-pdf.set_font("helvetica", "", 12)
-pdf.cell(0, 10, all_time['x_values'][-1] , align='L' )
-pdf.cell(0, 10, time.strftime("%Y-%m-%d %H:%M") , align='R' )
-
-pdf.ln(20)
-
-
-pdf.set_font("helvetica", "B", 12)
-pdf.cell(30, 10, "Year" )
-pdf.cell(30, 10, "Linear slope" )
-pdf.cell(30, 10, "R squared" )
-pdf.cell(30, 10, "% increase" )
-pdf.cell(30, 10, "daily % avg" )
-
-pdf.ln()
-
-for year in each_year:
-    
-    
-    if len(each_year[year]['x_values']) > 5:
-    
-    
-        pdf.set_font("helvetica", "", 12)
-        
-        if year == list(each_year)[-1]:
-            print("test")
-            pdf.cell(30, 10, "D-250" )
-            pdf.cell(30, 10, str(time_frame_stats['250']['slope']) )
-            pdf.cell(30, 10, str(time_frame_stats['250']['r2']) )
-            pdf.cell(30, 10, str(time_frame_stats['250']['percent_increase']) )
-            pdf.cell(30, 10, str(time_frame_stats['250']['daily_percent_increase']) )    
-            pdf.ln()
-        
-        pdf.cell(30, 10, year )
-        pdf.cell(30, 10, str(each_year[year]['slope']) )
-        pdf.cell(30, 10, str(each_year[year]['r2']) )
-        pdf.cell(30, 10, str(each_year[year]['percent_increase']) )
-        pdf.cell(30, 10, str(each_year[year]['percent_increase_daily_avg']) )    
-        pdf.ln()
-
-
-
-
-
-
-
-
-
-print("pdf charts")
-
-
-
-
-if args.all:
-    print("all_time")
-
-
-    pdf.add_page()
-    pdf.image('all_time/value-ma.png', w = 200 , h = 250)    
-
-
-    pdf.add_page()
-    pdf.image( 'all_time/ma-macd.png', w = 200 , h = 250)    
-
-
-if args.years:
-    for year in list(each_year)[:-1]:
-
-        print(year)
-        pdf.add_page()
-
-        pdf.set_font("helvetica", "B", 20)
-        pdf.cell(0, 18, year + " Report" , 1 , align='C')
-        pdf.ln()
-
-        pdf.add_page()
-        pdf.image(year + '/value-ma.png', w = 200 , h = 250)    
-
-
-        pdf.add_page()
-        pdf.image(year + '/ma-macd.png', w = 200 , h = 250)    
-
-
-
-if args.ytd:
-    for year in list(each_year)[-1:]:
-
-        if len(each_year[year]['x_values']) > 5:
-
-
-            print(year)
-            pdf.add_page()
-
-            pdf.set_font("helvetica", "B", 20)
-            pdf.cell(0, 18, year + " Report" , 1 , align='C')
-            pdf.ln()
-
-            pdf.add_page()
-            pdf.image(year + '/value-ma.png', w = 200 , h = 250)    
-
-
-            pdf.add_page()
-            pdf.image(year + '/ma-macd.png', w = 200 , h = 250)    
-
-
-
-pdf.output("report " + time.strftime("%Y-%m-%d %H-%M") + ".pdf")
-pdf.output("report.pdf")
->>>>>>> 5d57654032e19cf7d2b0f9d39321a56e8d534782
