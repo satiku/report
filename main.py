@@ -15,6 +15,8 @@ from bokeh.models import LinearAxis, Range1d
 from bokeh.models import RangeSlider
 from bokeh.models import ColumnDataSource, DataTable, TableColumn, Div
 from bokeh.palettes import Dark2_5 as palette
+from bokeh.models import HoverTool
+from bokeh.models import CrosshairTool, Span
 import itertools
 import time
 from datetime import datetime 
@@ -462,20 +464,29 @@ def gen_forecast(data_set):
     
     forcasted_values = {}
     forcasted_values['x_values'] = []
-    forcasted_values['y_values'] = []
+    forcasted_values['y_values_add'] = []
+    forcasted_values['y_values_mul'] = []
+    forcasted_values['y_values_avg'] = []
     
     date = data_set['x_values'][-1]
     
-    model = ExponentialSmoothing(data_set['y_values'], seasonal_periods=250, trend='add', seasonal='add')
-    fitted_model = model.fit()    
+    model_add = ExponentialSmoothing(data_set['y_values'], seasonal_periods=250, trend='add', seasonal='add' )
+    model_mul = ExponentialSmoothing(data_set['y_values'], seasonal_periods=250, trend='mul', seasonal='mul' )
+    
+    fitted_model_add = model_add.fit()    
+    fitted_model_mul = model_mul.fit()    
     
     # Forecast for the next 12 months
-    forecast = fitted_model.forecast(steps=forecast_time)
+    forecast_add = fitted_model_add.forecast(steps=forecast_time)
+    forecast_mul = fitted_model_mul.forecast(steps=forecast_time)
     
-    forcasted_values['y_values'].extend(list(forecast))
+    forcasted_values['y_values_add'].extend(list(forecast_add))
+    forcasted_values['y_values_mul'].extend(list(forecast_mul))
+        
     
-    
-    for interval in range(forecast_time) :
+    for index in range(forecast_time) :
+        forcasted_values['y_values_avg'].append((forcasted_values['y_values_add'][index] + forcasted_values['y_values_mul'][index])/2)
+        
         
         if date.weekday() == 4 :
             date = date + timedelta(days = 3)
@@ -543,6 +554,20 @@ def gen_bokeh_chart(data_set_id, data_set, each_year, time_frame, year_over_year
 
     date_buffer = int((data_set['x_values'][-1] - data_set['x_values'][0]).days * 0.025)
     
+    
+    source = ColumnDataSource(data={
+    'x': data_set['x_values'],
+    'y_value': data_set['y_values'],
+    'y_sma5': data_set['average_y_5'],
+    'y_sma20': data_set['average_y_20'],
+    'y_sma60': data_set['average_y_60']
+    # Add more fields for other lines if needed
+})
+    
+    
+
+    
+    
     p_all = figure(
         x_axis_type="datetime", 
         sizing_mode="scale_width", 
@@ -553,19 +578,54 @@ def gen_bokeh_chart(data_set_id, data_set, each_year, time_frame, year_over_year
         x_range=(data_set['x_values'][0] - timedelta(days = date_buffer), data_set['x_values'][-1] + timedelta(days = date_buffer))
         )
 
+
+    hover = HoverTool(
+        tooltips=[
+            ("Date", "@x{%F}"),
+            ("Tool", "$y{0,0.00}"),
+            ("Value", "@y_value{0,0.00}"),
+            ("SMA 5", "@y_sma5{0,0.00}"),
+            ("SMA 20", "@y_sma20{0,0.00}"),
+            ("SMA 60", "@y_sma60{0,0.00}"),            
+        ],
+        formatters={'@x': 'datetime'},
+        mode='vline'        
+    )
+    cross = CrosshairTool()
+    p_all.add_tools(hover,cross)
+
+    
+    
+    
+    
+    
+    
+    
+            
     # add multiple renderers
-    p_all.line(data_set['x_values'], data_set['y_values'], legend_label="Value", color="blue", line_width=1)
-    
-    p_all.line(data_set['x_values'], data_set['average_y_5'] , legend_label="SMA 5", color="orange", line_width=1)
-    p_all.line(data_set['x_values'], data_set['average_y_20'], legend_label="SMA 20", color="green", line_width=1)
-    p_all.line(data_set['x_values'], data_set['average_y_60'], legend_label="SMA 60", color="red", line_width=1)
-    # show the results
-    
-    p_all.line(data_set['x_values'], data_set['best_fit_line'], legend_label="linear", color="purple", line_width=1)
-    p_all.line(data_set['x_values'], data_set['theta_fit_list_2'], legend_label="poly 2", color="gold", line_width=1)
-    p_all.line(data_set['x_values'], data_set['best_fit_exp'], legend_label="exp", color="brown", line_width=1)        
-  
+    p_all.line('x', 'y_value', source=source, legend_label="Value", color="blue", line_width=1, name="Value")
+    p_all.line('x', 'y_sma5', source=source, legend_label="SMA 5", color="orange", line_width=1, name="SMA 5")
+    p_all.line('x', 'y_sma20', source=source, legend_label="SMA 20", color="green", line_width=1, name="SMA 20")
+    p_all.line('x', 'y_sma60', source=source, legend_label="SMA 60", color="red", line_width=1, name="SMA 60")
         
+
+  
+
+
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+    p_all.xaxis[0].formatter = DatetimeTickFormatter(days=["%m - %Y"], months=["%m - %Y"],)  
+    
     p_all.xaxis.ticker = tickers.MonthsTicker(months=list(range(0, 13, 1)))
     p_all.xaxis.major_label_orientation = 0.9
     
@@ -1026,6 +1086,7 @@ def gen_bokeh_chart(data_set_id, data_set, each_year, time_frame, year_over_year
     p_benchmark.line(benchmarks['x_values'], benchmarks['^DJI'], legend_label="DJI", color="red", line_width=1)
     # show the results
     
+
     
     p_benchmark.legend.click_policy="hide"
     p_benchmark.legend.location = "top_left"    
@@ -1056,10 +1117,13 @@ def gen_bokeh_chart(data_set_id, data_set, each_year, time_frame, year_over_year
     # add multiple renderers
     p_forecast.line(data_set['x_values'], data_set['y_values'], legend_label="Value", color="blue", line_width=1)
     
-    p_forecast.line(forecasts['x_values'], forecasts['y_values'] , legend_label="Holt-Winters", color="orange", line_width=1)
+    p_forecast.line(forecasts['x_values'], forecasts['y_values_add'] , legend_label="Holt-Winters add", color="orange", line_width=1)
+    p_forecast.line(forecasts['x_values'], forecasts['y_values_mul'] , legend_label="Holt-Winters mul", color="red", line_width=1)    
+    p_forecast.line(forecasts['x_values'], forecasts['y_values_avg'] , legend_label="Holt-Winters avg", color="green", line_width=1)        
 
-    # show the results
-    
+    p_forecast.xaxis[0].formatter = DatetimeTickFormatter(days=["%m - %Y"], months=["%m - %Y"],)
+    p_forecast.xaxis.ticker = tickers.MonthsTicker(months=list(range(0, 13, 1)))
+    p_forecast.xaxis.major_label_orientation = 0.9
     
     p_forecast.legend.click_policy="hide"
     p_forecast.legend.location = "top_left"    
