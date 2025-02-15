@@ -464,38 +464,81 @@ def gen_forecast(data_set):
     
     forcasted_values = {}
     forcasted_values['x_values'] = []
+    forcasted_values['x_values_this_year'] = []
+    
     forcasted_values['y_values_add'] = []
     forcasted_values['y_values_mul'] = []
     forcasted_values['y_values_avg'] = []
     
+    forcasted_values['y_values_this_year_add'] = []
+    forcasted_values['y_values_this_year_mul'] = []
+    forcasted_values['y_values_this_year_avg'] = []
+    
+    modified_data_set = {}
+
+    last_year = data_set['x_values'][-1].year
+
+    
+    for index, date in enumerate(reversed(data_set['x_values'])) :
+        
+        if  date.year != last_year : 
+            last_year_index = -1 * index
+
+            break
+
+
+    this_year_date = data_set['x_values'][last_year_index]
     date = data_set['x_values'][-1]
     
-    model_add = ExponentialSmoothing(data_set['y_values'], seasonal_periods=250, trend='add', seasonal='add' )
-    model_mul = ExponentialSmoothing(data_set['y_values'], seasonal_periods=250, trend='mul', seasonal='mul' )
+    modified_data_set['y_values'] = data_set['y_values'][:last_year_index]
+    
+    
+    model_add = ExponentialSmoothing(modified_data_set['y_values'], seasonal_periods=250, trend='add', seasonal='add' )
+    model_mul = ExponentialSmoothing(modified_data_set['y_values'], seasonal_periods=250, trend='mul', seasonal='mul' )
+    
+    this_year_model_add = ExponentialSmoothing(modified_data_set['y_values'], seasonal_periods=250, trend='add', seasonal='add' )
+    this_year_model_mul = ExponentialSmoothing(modified_data_set['y_values'], seasonal_periods=250, trend='mul', seasonal='mul' )    
     
     fitted_model_add = model_add.fit()    
-    fitted_model_mul = model_mul.fit()    
+    fitted_model_mul = model_mul.fit()
+
+    this_year_fitted_model_add = this_year_model_add.fit()    
+    this_year_fitted_model_mul = this_year_model_mul.fit()    
     
     # Forecast for the next 12 months
     forecast_add = fitted_model_add.forecast(steps=forecast_time)
     forecast_mul = fitted_model_mul.forecast(steps=forecast_time)
     
+    this_year_forecast_add = this_year_fitted_model_add.forecast(steps=forecast_time)
+    this_year_forecast_mul = this_year_fitted_model_mul.forecast(steps=forecast_time)    
+    
     forcasted_values['y_values_add'].extend(list(forecast_add))
     forcasted_values['y_values_mul'].extend(list(forecast_mul))
+    
+    forcasted_values['y_values_this_year_add'].extend(list(this_year_forecast_add))
+    forcasted_values['y_values_this_year_mul'].extend(list(this_year_forecast_mul))    
         
     
     for index in range(forecast_time) :
         forcasted_values['y_values_avg'].append((forcasted_values['y_values_add'][index] + forcasted_values['y_values_mul'][index])/2)
         
+        forcasted_values['y_values_this_year_avg'].append((forcasted_values['y_values_this_year_add'][index] + forcasted_values['y_values_this_year_mul'][index])/2)
+        
         
         if date.weekday() == 4 :
             date = date + timedelta(days = 3)
             forcasted_values['x_values'].append(date)
+            
+            this_year_date = this_year_date + timedelta(days = 3)
+            forcasted_values['x_values_this_year'].append(this_year_date)
         else : 
             date = date + timedelta(days = 1)
             forcasted_values['x_values'].append(date)
         
-        
+            this_year_date = this_year_date + timedelta(days = 1)
+            forcasted_values['x_values_this_year'].append(this_year_date)
+
+            
     return forcasted_values
 
 
@@ -1113,10 +1156,39 @@ def gen_bokeh_chart(data_set_id, data_set, each_year, time_frame, year_over_year
 
 
 
+    p_forecast_this_year = figure(
+        x_axis_type="datetime", 
+        sizing_mode="scale_width", 
+        width=chart_width, 
+        height=chart_height,
+        title="Value", 
+        x_axis_label="x", 
+        y_axis_label="y", 
+        )
+
+    # add multiple renderers
+    p_forecast_this_year.line(data_set['x_values'], data_set['y_values'], legend_label="Value", color="blue", line_width=1)
+    
+    p_forecast_this_year.line(forecasts['x_values_this_year'], forecasts['y_values_this_year_add'] , legend_label="Holt-Winters add", color="orange", line_width=1)
+    p_forecast_this_year.line(forecasts['x_values_this_year'], forecasts['y_values_this_year_mul'] , legend_label="Holt-Winters mul", color="red", line_width=1)    
+    p_forecast_this_year.line(forecasts['x_values_this_year'], forecasts['y_values_this_year_avg'] , legend_label="Holt-Winters avg", color="green", line_width=1)        
+
+    p_forecast_this_year.xaxis[0].formatter = DatetimeTickFormatter(days=["%m - %Y"], months=["%m - %Y"],)
+    p_forecast_this_year.xaxis.ticker = tickers.MonthsTicker(months=list(range(0, 13, 1)))
+    p_forecast_this_year.xaxis.major_label_orientation = 0.9
+    
+    p_forecast_this_year.legend.click_policy="hide"
+    p_forecast_this_year.legend.location = "top_left"    
+    
+    
+    
+    
+    
     p_forecast = figure(
         x_axis_type="datetime", 
         sizing_mode="scale_width", 
-        aspect_ratio=11/5 ,
+        width=chart_width, 
+        height=chart_height,
         title="Value", 
         x_axis_label="x", 
         y_axis_label="y", 
@@ -1136,8 +1208,10 @@ def gen_bokeh_chart(data_set_id, data_set, each_year, time_frame, year_over_year
     p_forecast.legend.click_policy="hide"
     p_forecast.legend.location = "top_left"    
     
+    
+    
 
-    tabs.append(Panel(child=p_forecast, title="Forecast"))
+    tabs.append(Panel(child=column(p_forecast_this_year, p_forecast), title="Forecast"))
 
 
 
