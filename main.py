@@ -440,7 +440,6 @@ def gen_benchmark(data_set):
     for ticker in tickers :
         benchmark[ticker] = []
         
-        print(ticker)
         starting_value = data.loc[benchmark_data_set['x_values'][0], ('Close', ticker)]
         
         for date in benchmark_data_set['x_values']:
@@ -1258,91 +1257,106 @@ file_path = args.file_path
     
 print()
 print()
-print("=============================")   
+print("=====================================================")   
 print("processing ", file_path)
-print("=============================")
+print("=====================================================")
 print()
 
 all_start_time = time.perf_counter()
 
 
-print()
-print("=============================")   
-print("Generating base data ")
+
 
 job_start_time = time.perf_counter()
 all_time = gen_all_time('P1.csv')
+print('Generating base data                       {0:>3.5f}'.format(    
+        time.perf_counter() - job_start_time ,         
+        ))
 
-print(time.perf_counter() - job_start_time)
 
-
-
-print()
-print("=============================")   
-print("Generating best fit data ")
 
 job_start_time = time.perf_counter()
 all_time.update(gen_best_fit(all_time))
+print('Generating best fit data                   {0:>3.5f}'.format(    
+        time.perf_counter() - job_start_time ,         
+        ))
 
-print(time.perf_counter() - job_start_time)
-
-
-
-print()
-print("=============================")   
-print("Generating downside data ")
 
 
 job_start_time = time.perf_counter()
 all_time.update(gen_all_time_downside(all_time))
+print('Generating downside data                   {0:>3.5f}'.format(    
+        time.perf_counter() - job_start_time ,        
+        ))
 
-print(time.perf_counter() - job_start_time)
 
-
-
-print()
-print("=============================")   
-print("Generating benchmark data ")
 
 job_start_time = time.perf_counter()
 benchmarks = gen_benchmark(all_time)
+print('Generating benchmark data                  {0:>3.5f}'.format(    
+        time.perf_counter() - job_start_time ,         
+        ))
 
-print(time.perf_counter() - job_start_time)
 
-
-
-print()
-print("=============================")   
-print("Generating forecast data ")
 
 job_start_time = time.perf_counter()
 forecasts = gen_forecast(all_time)
-
-print(time.perf_counter() - job_start_time)
-
-
-
-
-each_year = gen_each_year(all_time)
+print('Generating forecast data                   {0:>3.5f}'.format(    
+        time.perf_counter() - job_start_time ,         
+        ))
 
 
+
+job_start_time = time.perf_counter()
 all_time_high = gen_all_time_high(all_time)
+print('Generating high low cycle data             {0:>3.5f}'.format(   
+        time.perf_counter() - job_start_time ,         
+        ))
 
 
+
+job_start_time = time.perf_counter()
 time_frame_stats = gen_time_frame_stats(all_time)
+print('Generating time frame data                 {0:>3.5f}'.format(    
+        time.perf_counter() - job_start_time ,        
+        ))
 
 
+
+job_start_time = time.perf_counter()
 year_over_year = gen_year_over_year(all_time)
+print('Generating year over year data             {0:>3.5f}'.format(    
+        time.perf_counter() - job_start_time ,         
+        ))
 
 
-for year in each_year:
-    
-    if len(each_year[year]['x_values']) > 5:
-        
+
+job_start_time = time.perf_counter()
+each_year = gen_each_year(all_time)
+print('Generating each year data                  {0:>3.5f}'.format(   
+        time.perf_counter() - job_start_time ,         
+        ))
+
+
+
+job_start_time = time.perf_counter()
+
+for year in each_year:    
+    if len(each_year[year]['x_values']) > 5:        
         each_year[year].update(gen_best_fit(each_year[year]))
 
+print('Generating each year best fit data         {0:>3.5f}'.format(    
+        time.perf_counter() - job_start_time ,         
+        ))
 
-
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
  
 print(time.perf_counter() - all_start_time)
 
@@ -1390,9 +1404,10 @@ if args.bokeh:
 
     tabs0 = Tabs(tabs=gen_bokeh_chart("all_time", all_time , each_year, time_frame_stats, year_over_year, benchmarks, forecasts))
     
+    title_text = "<h1>Date: " + all_time['x_values'][-1].strftime("%Y-%m-%d") + "</h1>"
+    title = Div(text=title_text, margin=(-10,20,-10,20),)
     
-    
-    show(tabs0)
+    show(column(children=[title, tabs0], sizing_mode="scale_width"))
 
 
     print(time.perf_counter() - bokeh_time)
