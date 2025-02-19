@@ -145,6 +145,7 @@ def gen_all_time(file):
 
 
 
+
 def gen_each_year(all_time):
 
     each_year = {}
@@ -200,6 +201,7 @@ def gen_each_year(all_time):
 
 
     return each_year
+
 
 
 
@@ -395,8 +397,6 @@ def gen_best_fit(data_set):
 
 
 
-
-
 def gen_benchmark(data_set):
 
     benchmark = {}
@@ -455,8 +455,6 @@ def gen_benchmark(data_set):
 
 
     return(benchmark)
-
-
 
 
 
@@ -585,10 +583,88 @@ def gen_time_frame_stats(all_time):
     
         
     return(time_frame_stats)
+
+
+
+
+def gen_bokeh_forecast_chart(data_set, forecasts):
+
+
+    tabs = []
+
+    p_forecast_this_year = figure(
+        x_axis_type="datetime", 
+        sizing_mode="scale_width", 
+        aspect_ratio=11/5 ,
+        title="Value", 
+        x_axis_label="x", 
+        y_axis_label="y", 
+        )
+
+    # add multiple renderers
+    p_forecast_this_year.line(data_set['x_values'], data_set['y_values'], legend_label="Value", color="blue", line_width=1)
+    
+    p_forecast_this_year.line(forecasts['x_values_this_year'], forecasts['y_values_this_year_add'] , legend_label="Holt-Winters add", color="orange", line_width=1)
+    p_forecast_this_year.line(forecasts['x_values_this_year'], forecasts['y_values_this_year_mul'] , legend_label="Holt-Winters mul", color="red", line_width=1)    
+    p_forecast_this_year.line(forecasts['x_values_this_year'], forecasts['y_values_this_year_avg'] , legend_label="Holt-Winters avg", color="green", line_width=1)        
+
+    p_forecast_this_year.xaxis[0].formatter = DatetimeTickFormatter(days=["%m - %Y"], months=["%m - %Y"],)
+    p_forecast_this_year.xaxis.ticker = tickers.MonthsTicker(months=list(range(0, 13, 1)))
+    p_forecast_this_year.xaxis.major_label_orientation = 0.9
+    
+    p_forecast_this_year.legend.click_policy="hide"
+    p_forecast_this_year.legend.location = "top_left"    
+    
+    
+    
+    
+    
+    p_forecast = figure(
+        x_axis_type="datetime", 
+        sizing_mode="scale_width", 
+        aspect_ratio=11/5 ,
+        title="Value", 
+        x_axis_label="x", 
+        y_axis_label="y", 
+        )
+
+    # add multiple renderers
+    p_forecast.line(data_set['x_values'], data_set['y_values'], legend_label="Value", color="blue", line_width=1)
+    
+    p_forecast.line(forecasts['x_values'], forecasts['y_values_add'] , legend_label="Holt-Winters add", color="orange", line_width=1)
+    p_forecast.line(forecasts['x_values'], forecasts['y_values_mul'] , legend_label="Holt-Winters mul", color="red", line_width=1)    
+    p_forecast.line(forecasts['x_values'], forecasts['y_values_avg'] , legend_label="Holt-Winters avg", color="green", line_width=1)        
+
+    p_forecast.xaxis[0].formatter = DatetimeTickFormatter(days=["%m - %Y"], months=["%m - %Y"],)
+    p_forecast.xaxis.ticker = tickers.MonthsTicker(months=list(range(0, 13, 1)))
+    p_forecast.xaxis.major_label_orientation = 0.9
+    
+    p_forecast.legend.click_policy="hide"
+    p_forecast.legend.location = "top_left"    
+    
+    
     
 
+    tabs.append(Panel(child=column(p_forecast_this_year, p_forecast, sizing_mode="scale_width"), title="Forecast"))
 
-def gen_bokeh_chart(data_set_id, data_set, each_year, time_frame, year_over_year, benchmarks, forecasts):
+
+
+
+
+
+
+
+
+
+
+
+
+    return tabs
+
+
+
+
+def gen_bokeh_chart(data_set_id, data_set, each_year, time_frame, year_over_year, benchmarks ):
     
     chart_width = 1500
     chart_height = 800
@@ -627,34 +703,13 @@ def gen_bokeh_chart(data_set_id, data_set, each_year, time_frame, year_over_year
         )
 
 
-    hover = HoverTool(
-        tooltips=[
-            ("Date"            , "@x{%F}"),
-            ("Tool"            , "$y{0,0.00}"),
-            ("Value"           , "@y_value{0,0.00}"),
-            ("SMA 5"           , "@y_sma5{0,0.00}"),
-            ("SMA 20"          , "@y_sma20{0,0.00}"),
-            ("SMA 60"          , "@y_sma60{0,0.00}"),
-            ("Linear"          , "@y_best_fit_line{0,0.00}"),
-            ("Polynomial"      , "@y_theta_fit_list_2{0,0.00}"),
-            ("Exponential"     , "@y_best_fit_exp{0,0.00}"),               
-        ],
-        formatters={'@x': 'datetime'},
-        mode='vline'        
-    )
-    cross = CrosshairTool()
-    p_all.add_tools(hover,cross)
 
-    
-    
-    
-    
     
     
     
             
     # add multiple renderers
-    p_all.line('x', 'y_value'             , source=source, legend_label="Value"       , color="blue"    , line_width=1)
+    line1 = p_all.line('x', 'y_value'             , source=source, legend_label="Value"       , color="blue"    , line_width=1)
     
     p_all.line('x', 'y_sma5'              , source=source, legend_label="SMA 5"       , color="orange"  , line_width=1)
     p_all.line('x', 'y_sma20'             , source=source, legend_label="SMA 20"      , color="green"   , line_width=1)
@@ -669,7 +724,29 @@ def gen_bokeh_chart(data_set_id, data_set, each_year, time_frame, year_over_year
   
   
   
-  
+    hover = HoverTool(
+        tooltips=[
+            ("Date"            , "@x{%F}"),
+            ("Tool"            , "$y{0,0.00}"),
+            ("Value"           , "@y_value{0,0.00}"),
+            ("SMA 5"           , "@y_sma5{0,0.00}"),
+            ("SMA 20"          , "@y_sma20{0,0.00}"),
+            ("SMA 60"          , "@y_sma60{0,0.00}"),
+            ("Linear"          , "@y_best_fit_line{0,0.00}"),
+            ("Polynomial"      , "@y_theta_fit_list_2{0,0.00}"),
+            ("Exponential"     , "@y_best_fit_exp{0,0.00}"),               
+        ],
+        formatters={'@x': 'datetime'},
+        mode='vline',
+        renderers=[line1]        
+    )
+    cross = CrosshairTool()
+    p_all.add_tools(hover,cross)
+
+    
+    
+    
+      
   
   
   
@@ -955,14 +1032,56 @@ def gen_bokeh_chart(data_set_id, data_set, each_year, time_frame, year_over_year
         width=400, 
         height=280 , 
         index_position = None , 
-        margin=(-5,80,-5,80),
+        margin=(-5,80,-120,80),
         )
     
     
     
-    
-    
-    
+
+
+
+
+    all_time_high_stats_title = Div(text="<h4>High Low Cycle Stats</h4>", margin=(5,80,5,80),)
+
+    all_time_high_stats = {}
+
+
+    all_time_high_stats['date'] = []
+    all_time_high_stats['cycle_high'] = []
+    all_time_high_stats['cycle_low'] = []
+    all_time_high_stats['difference'] = []
+    all_time_high_stats['days'] = []
+    all_time_high_stats['percent'] = []
+
+        
+    for all_time_high_index in all_time_high:     
+        
+        all_time_high_stats['date'].append(all_time_high_index['date'].strftime("%Y-%m-%d"))
+        all_time_high_stats['cycle_high'].append(all_time_high_index['cycle_high'])
+        all_time_high_stats['cycle_low'].append(all_time_high_index['cycle_low'])
+        all_time_high_stats['difference'].append(all_time_high_index['difference'])
+        all_time_high_stats['days'].append(all_time_high_index['days'])
+        all_time_high_stats['percent'].append(all_time_high_index['percent'])
+
+    all_time_source = ColumnDataSource(all_time_high_stats)
+
+    all_time_high_stats_columns = [
+            TableColumn(field="date", title="Date"),
+            TableColumn(field="cycle_high", title="Cycle High"),
+            TableColumn(field="cycle_low", title="Cycle Low"),
+            TableColumn(field="difference", title="Difference"),
+            TableColumn(field="days", title="Days"),
+            TableColumn(field="percent", title="Percent"),
+            ]
+                    
+    all_time_high_stats_data_table = DataTable(
+        source=all_time_source, 
+        columns=all_time_high_stats_columns, 
+        width=400, 
+        height=280 , 
+        index_position = None , 
+        margin=(-5,80,-5,80),
+        )    
     
     
     
@@ -987,6 +1106,8 @@ def gen_bokeh_chart(data_set_id, data_set, each_year, time_frame, year_over_year
         each_year_stats_data_table,         
         time_frame_stats_title, 
         time_frame_stats_data_table, 
+        all_time_high_stats_title, 
+        all_time_high_stats_data_table,         
         sizing_mode="stretch_width"
         ), title="all"))
     
@@ -1001,7 +1122,7 @@ def gen_bokeh_chart(data_set_id, data_set, each_year, time_frame, year_over_year
     
     for year in list(each_year):
     
-        print(year)
+
 
         
         
@@ -1158,66 +1279,8 @@ def gen_bokeh_chart(data_set_id, data_set, each_year, time_frame, year_over_year
 
 
 
-
-    p_forecast_this_year = figure(
-        x_axis_type="datetime", 
-        sizing_mode="scale_width", 
-        width=chart_width, 
-        height=chart_height,
-        title="Value", 
-        x_axis_label="x", 
-        y_axis_label="y", 
-        )
-
-    # add multiple renderers
-    p_forecast_this_year.line(data_set['x_values'], data_set['y_values'], legend_label="Value", color="blue", line_width=1)
-    
-    p_forecast_this_year.line(forecasts['x_values_this_year'], forecasts['y_values_this_year_add'] , legend_label="Holt-Winters add", color="orange", line_width=1)
-    p_forecast_this_year.line(forecasts['x_values_this_year'], forecasts['y_values_this_year_mul'] , legend_label="Holt-Winters mul", color="red", line_width=1)    
-    p_forecast_this_year.line(forecasts['x_values_this_year'], forecasts['y_values_this_year_avg'] , legend_label="Holt-Winters avg", color="green", line_width=1)        
-
-    p_forecast_this_year.xaxis[0].formatter = DatetimeTickFormatter(days=["%m - %Y"], months=["%m - %Y"],)
-    p_forecast_this_year.xaxis.ticker = tickers.MonthsTicker(months=list(range(0, 13, 1)))
-    p_forecast_this_year.xaxis.major_label_orientation = 0.9
-    
-    p_forecast_this_year.legend.click_policy="hide"
-    p_forecast_this_year.legend.location = "top_left"    
     
     
-    
-    
-    
-    p_forecast = figure(
-        x_axis_type="datetime", 
-        sizing_mode="scale_width", 
-        width=chart_width, 
-        height=chart_height,
-        title="Value", 
-        x_axis_label="x", 
-        y_axis_label="y", 
-        )
-
-    # add multiple renderers
-    p_forecast.line(data_set['x_values'], data_set['y_values'], legend_label="Value", color="blue", line_width=1)
-    
-    p_forecast.line(forecasts['x_values'], forecasts['y_values_add'] , legend_label="Holt-Winters add", color="orange", line_width=1)
-    p_forecast.line(forecasts['x_values'], forecasts['y_values_mul'] , legend_label="Holt-Winters mul", color="red", line_width=1)    
-    p_forecast.line(forecasts['x_values'], forecasts['y_values_avg'] , legend_label="Holt-Winters avg", color="green", line_width=1)        
-
-    p_forecast.xaxis[0].formatter = DatetimeTickFormatter(days=["%m - %Y"], months=["%m - %Y"],)
-    p_forecast.xaxis.ticker = tickers.MonthsTicker(months=list(range(0, 13, 1)))
-    p_forecast.xaxis.major_label_orientation = 0.9
-    
-    p_forecast.legend.click_policy="hide"
-    p_forecast.legend.location = "top_left"    
-    
-    
-    
-
-    tabs.append(Panel(child=column(p_forecast_this_year, p_forecast), title="Forecast"))
-
-
-
 
 
 
@@ -1227,7 +1290,7 @@ def gen_bokeh_chart(data_set_id, data_set, each_year, time_frame, year_over_year
 
 
 
-    
+all_start_time = time.perf_counter()    
     
     
     
@@ -1261,9 +1324,6 @@ print("=====================================================")
 print("processing ", file_path)
 print("=====================================================")
 print()
-
-all_start_time = time.perf_counter()
-
 
 
 
@@ -1364,28 +1424,7 @@ print(time.perf_counter() - all_start_time)
 
 print()
 print()
-print("=============================")
-print(" high low cycle")
-print("=============================")
-print()
-print("------------+------------------+------------------+--------------+--------+----------+")
-print("        date|     all time high|      all time low|    difference|    days|   percent|")
-print("------------+------------------+------------------+--------------+--------+----------+")
 
-
-for item in all_time_high :
-
-
-    print('{0:>12s}|  {1:>16.2f}|  {2:>16.2f}|  {3:>12.2f}|  {4:6}|  {5:>8.2f}|'.format(
-    
-        str(item['date'].strftime("%Y-%m-%d")) , 
-        item['cycle_high'] , 
-        item['cycle_low'] , 
-        item['difference'] , 
-        item['days'] , 
-        item['percent']
-    
-    ))
 
 
 
@@ -1393,25 +1432,44 @@ for item in all_time_high :
 if args.bokeh:
     
 
-    print()
-    print("=============================")
-    print("Generating Bokeh")
-    print("=============================")
-
-
     bokeh_time = time.perf_counter()
     
-
-    tabs0 = Tabs(tabs=gen_bokeh_chart("all_time", all_time , each_year, time_frame_stats, year_over_year, benchmarks, forecasts))
     
+    job_start_time = time.perf_counter()
+    tabs = gen_bokeh_chart("all_time", all_time , each_year, time_frame_stats, year_over_year, benchmarks )
+    print('Generating main bokeh chart                 {0:>3.5f}'.format(    
+        time.perf_counter() - job_start_time ,         
+        ))
+
+
+
+    job_start_time = time.perf_counter()
+    tabs.extend(gen_bokeh_forecast_chart(all_time, forecasts))
+    print('Generating forecast bokeh chart             {0:>3.5f}'.format(    
+        time.perf_counter() - job_start_time ,         
+        ))    
+    
+
+
+
+
+    job_start_time = time.perf_counter()
+    
+    tabs0 = Tabs(tabs=tabs)
+
     title_text = "<h1>Date: " + all_time['x_values'][-1].strftime("%Y-%m-%d") + "</h1>"
     title = Div(text=title_text, margin=(-10,20,-10,20),)
     
     show(column(children=[title, tabs0], sizing_mode="scale_width"))
+    
+    print('Render bokeh chart                          {0:>3.5f}'.format(    
+        time.perf_counter() - job_start_time ,         
+        ))    
 
+    print()
 
-    print(time.perf_counter() - bokeh_time)
-
-
+    print('Total runtime                               {0:>3.5f}'.format(    
+        time.perf_counter() - all_start_time ,         
+        ))   
 
 
