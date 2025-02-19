@@ -709,7 +709,8 @@ def gen_bokeh_chart(data_set_id, data_set, each_year, time_frame, year_over_year
     
             
     # add multiple renderers
-    line1 = p_all.line('x', 'y_value'             , source=source, legend_label="Value"       , color="blue"    , line_width=1)
+    line1 = \
+    p_all.line('x', 'y_value'             , source=source, legend_label="Value"       , color="blue"    , line_width=1)
     
     p_all.line('x', 'y_sma5'              , source=source, legend_label="SMA 5"       , color="orange"  , line_width=1)
     p_all.line('x', 'y_sma20'             , source=source, legend_label="SMA 20"      , color="green"   , line_width=1)
