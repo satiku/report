@@ -981,7 +981,10 @@ def gen_bokeh_chart(data_set_id, data_set, each_year, time_frame, year_over_year
         p_year_over_year_percents.legend.click_policy = "hide"
         p_year_over_year_percents.legend.location = "top_left"
 
-    tabs.append(Panel(child=column(p_year_over_years, p_year_over_year_percents), title="YoY"))
+    tabs.append(Panel(child=column(
+        p_year_over_years,
+        p_year_over_year_percents,
+    ), title="YoY"))
 
     p_benchmark = figure(
         sizing_mode="scale_width",
@@ -992,11 +995,37 @@ def gen_bokeh_chart(data_set_id, data_set, each_year, time_frame, year_over_year
         )
 
     # add multiple renderers
-    p_benchmark.line(benchmarks['x_values'], benchmarks['portfolio'], legend_label="Value", color="blue", line_width=1)
+    p_benchmark.line(
+        benchmarks['x_values'],
+        benchmarks['portfolio'],
+        legend_label="Value",
+        color="blue",
+        line_width=1,
+    )
 
-    p_benchmark.line(benchmarks['x_values'], benchmarks['^GSPC'], legend_label="SP-500", color="orange", line_width=1)
-    p_benchmark.line(benchmarks['x_values'], benchmarks['^IXIC'], legend_label="NASDAQ", color="green", line_width=1)
-    p_benchmark.line(benchmarks['x_values'], benchmarks['^DJI'], legend_label="DJI", color="red", line_width=1)
+    p_benchmark.line(
+        benchmarks['x_values'],
+        benchmarks['^GSPC'],
+        legend_label="SP-500",
+        color="orange",
+        line_width=1,
+    )
+
+    p_benchmark.line(
+        benchmarks['x_values'],
+        benchmarks['^IXIC'],
+        legend_label="NASDAQ",
+        color="green",
+        line_width=1,
+    )
+
+    p_benchmark.line(
+        benchmarks['x_values'],
+        benchmarks['^DJI'],
+        legend_label="DJI",
+        color="red",
+        line_width=1,
+    )
     # show the results
 
     p_benchmark.legend.click_policy = "hide"
@@ -1012,8 +1041,8 @@ all_start_time = time.perf_counter()
 parser = argparse.ArgumentParser(description="Financial Data Analysis")
 
 parser.add_argument("file_path", help="Path to CSV file")
-parser.add_argument("--silent",    action='store_true', help="Silence warnings")
-parser.add_argument("--bokeh",  action='store_true', help="Create Bokeh Charts")
+parser.add_argument("--silent", action='store_true', help="Silence warnings")
+parser.add_argument("--bokeh", action='store_true', help="Create Bokeh Charts")
 
 args = parser.parse_args()
 
@@ -1126,7 +1155,8 @@ if args.bokeh:
 
     tabs0 = Tabs(tabs=tabs)
 
-    title_text = "<h1>Date: " + all_time['x_values'][-1].strftime("%Y-%m-%d") + "</h1>"
+    title_text = \
+        "<h1>Date: " + all_time['x_values'][-1].strftime("%Y-%m-%d") + "</h1>"
     title = Div(text=title_text, margin=(-10, 20, -10, 20))
     layout = column(children=[title, tabs0], sizing_mode="stretch_both")
 
