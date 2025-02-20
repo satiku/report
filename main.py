@@ -343,7 +343,7 @@ def gen_benchmark(data_set):
     benchmark_data_set['x_values'] = data_set['x_values'][-20:]
     benchmark_data_set['y_values'] = data_set['y_values'][-20:]
 
-    data = yf.download(tickers, start = benchmark_data_set['x_values'][0], auto_adjust=True, progress=False)
+    data = yf.download(tickers, start=benchmark_data_set['x_values'][0], auto_adjust=True, progress=False)
 
     new_index = pd.date_range(start=data.index.min(), end=data.index.max(), freq='D')
     data = data.reindex(new_index)
@@ -434,19 +434,19 @@ def gen_forecast(data_set):
         forcasted_values['y_values_this_year_avg'].append((forcasted_values['y_values_this_year_add'][index] + forcasted_values['y_values_this_year_mul'][index])/2)
 
         if date.weekday() == 4:
-            date = date + timedelta(days = 3)
+            date=date + timedelta(days=3)
             forcasted_values['x_values'].append(date)
 
         else:
-            date = date + timedelta(days = 1)
+            date=date + timedelta(days=1)
             forcasted_values['x_values'].append(date)
 
         if this_year_date.weekday() == 4:
-            this_year_date = this_year_date + timedelta(days = 3)
+            this_year_date=this_year_date + timedelta(days=3)
             forcasted_values['x_values_this_year'].append(this_year_date)
 
         else:
-            this_year_date = this_year_date + timedelta(days = 1)
+            this_year_date=this_year_date + timedelta(days=1)
             forcasted_values['x_values_this_year'].append(this_year_date)
 
     return forcasted_values
@@ -596,7 +596,7 @@ def gen_bokeh_chart(data_set_id, data_set, each_year, time_frame, year_over_year
         title="Value",
         x_axis_label="x",
         y_axis_label="y",
-        x_range=(data_set['x_values'][0] - timedelta(days = date_buffer), data_set['x_values'][-1] + timedelta(days = date_buffer))
+        x_range=(data_set['x_values'][0] - timedelta(days=date_buffer), data_set['x_values'][-1] + timedelta(days=date_buffer))
         )
 
     # add multiple renderers
@@ -652,7 +652,7 @@ def gen_bokeh_chart(data_set_id, data_set, each_year, time_frame, year_over_year
     p_all_daily_percent_increase = figure(
         x_axis_type="datetime",
         sizing_mode="scale_width",
-        aspect_ratio= 10,
+        aspect_ratio=10,
         title="Daily Percent Increase",
         y_axis_label="y",
         x_range=p_all.x_range,
@@ -796,7 +796,7 @@ def gen_bokeh_chart(data_set_id, data_set, each_year, time_frame, year_over_year
         columns=each_year_stats_columns,
         width=400,
         height=280,
-        index_position = None,
+        index_position=None,
         margin=(-5,80,-120,80),
         )
 
@@ -833,7 +833,7 @@ def gen_bokeh_chart(data_set_id, data_set, each_year, time_frame, year_over_year
         columns=time_frame_stats_columns,
         width=400,
         height=280,
-        index_position = None,
+        index_position=None,
         margin=(-5,80,-120,80),
         )
 
@@ -873,7 +873,7 @@ def gen_bokeh_chart(data_set_id, data_set, each_year, time_frame, year_over_year
         columns=all_time_high_stats_columns,
         width=400,
         height=280,
-        index_position = None,
+        index_position=None,
         margin=(-5,80,-5,80),
         )
 
