@@ -4,8 +4,8 @@ import numpy as np
 import os
 import ta
 import pandas as pd
-from bokeh.plotting import figure, show
-from bokeh.models import Tabs, Tooltip, Panel
+from bokeh.plotting import figure
+from bokeh.models import Tabs, Panel
 from bokeh.models import DatetimeTickFormatter
 from bokeh.models import tickers
 from bokeh.layouts import column
@@ -16,7 +16,7 @@ from bokeh.models import RangeSlider
 from bokeh.models import ColumnDataSource, DataTable, TableColumn, Div
 from bokeh.palettes import Dark2_5 as palette
 from bokeh.models import HoverTool
-from bokeh.models import CrosshairTool, Span
+from bokeh.models import CrosshairTool
 from bokeh.io import output_file, save
 from bokeh.resources import INLINE
 import itertools
