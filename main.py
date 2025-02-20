@@ -93,13 +93,13 @@ def gen_all_time(file):
 
             all_time['x_values'][-1] = today
 
-        all_time['average_y_5']  = moving_average(5, all_time['y_values'])
+        all_time['average_y_5'] = moving_average(5, all_time['y_values'])
         all_time['average_y_20'] = moving_average(20, all_time['y_values'])
         all_time['average_y_60'] = moving_average(60, all_time['y_values'])
 
-        all_time['daily_percent_increase_ma_5']   = moving_average(5, all_time['daily_percent_increase'])
-        all_time['daily_percent_increase_ma_20']  = moving_average(20, all_time['daily_percent_increase'])
-        all_time['daily_percent_increase_ma_60']  = moving_average(60, all_time['daily_percent_increase'])
+        all_time['daily_percent_increase_ma_5'] = moving_average(5, all_time['daily_percent_increase'])
+        all_time['daily_percent_increase_ma_20'] = moving_average(20, all_time['daily_percent_increase'])
+        all_time['daily_percent_increase_ma_60'] = moving_average(60, all_time['daily_percent_increase'])
         all_time['daily_percent_increase_ma_250'] = moving_average(250, all_time['daily_percent_increase'])
 
         for index, _ in enumerate(all_time['y_values']):
@@ -164,9 +164,9 @@ def gen_each_year(all_time):
 
             each_year[year]['daily_percent_increase'] = []
 
-            each_year[year]['daily_percent_increase_ma_5']   = []
-            each_year[year]['daily_percent_increase_ma_20']  = []
-            each_year[year]['daily_percent_increase_ma_60']  = []
+            each_year[year]['daily_percent_increase_ma_5'] = []
+            each_year[year]['daily_percent_increase_ma_20'] = []
+            each_year[year]['daily_percent_increase_ma_60'] = []
             each_year[year]['daily_percent_increase_ma_250'] = []
 
         each_year[year]['x_values'].append(all_time['x_values'][index])
@@ -402,7 +402,7 @@ def gen_forecast(data_set):
 
     for index, date in enumerate(reversed(data_set['x_values'])):
 
-        if  date.year != last_year:
+        if date.year != last_year:
             last_year_index = -1 * index
 
             break
@@ -474,7 +474,7 @@ def gen_time_frame_stats(all_time):
 
     for time_frame in time_frame_stats:
 
-        time_frame_stats[time_frame]['percent_increase']       = round((((y_values[-1] - y_values[-1*int(time_frame)])/y_values[-1*int(time_frame)])*100), 3)
+        time_frame_stats[time_frame]['percent_increase'] = round((((y_values[-1] - y_values[-1*int(time_frame)])/y_values[-1*int(time_frame)])*100), 3)
         time_frame_stats[time_frame]['daily_percent_increase'] = round((((y_values[-1] - y_values[-1*int(time_frame)])/y_values[-1*int(time_frame)])*100)/int(time_frame), 3)
 
         m_b, ssr, _, _, _ = np.polyfit(np.array(range(len(y_values[(-1 * int(time_frame)):]))), y_values[(-1 * int(time_frame)):], 1, full="true")
@@ -742,7 +742,7 @@ def gen_bokeh_chart(data_set_id, data_set, each_year, time_frame, year_over_year
     # add multiple renderers
     p_downside.line(data_set['x_values'], data_set['downside'], legend_label="Downside", color="blue", line_width=1)
     p_downside.line(
-        data_set['x_values'], 
+        data_set['x_values'],
         data_set['downside_percent'],
         legend_label="Downside Percent",
         color="green",
