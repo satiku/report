@@ -96,9 +96,7 @@ def gen_all_time(file):
 
         # Check and replace the last date if it's in the future
         if all_time['x_values'][-1] > today:
-            print("error date")
-            print(all_time['x_values'][-1])
-            print(today)
+
             all_time['x_values'][-1] = today
 
 
