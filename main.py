@@ -928,7 +928,7 @@ def gen_bokeh_chart(data_set_id, data_set, each_year, time_frame, year_over_year
         p_years['year'].legend.click_policy = "hide"
         p_years['year'].legend.location = "top_left"
 
-        if year !=  list(each_year)[-1:]:
+        if year != list(each_year)[-1:]:
             tabs.append(Panel(child=p_years['year'], title=str(year)))
         else:
             tabs.append(Panel(child=p_years['year'], title=str(year)+"-YTD"))
@@ -959,7 +959,7 @@ def gen_bokeh_chart(data_set_id, data_set, each_year, time_frame, year_over_year
     p_year_over_years = figure(width=chart_width, height=chart_height, title="Multiple line example", x_axis_label="x", y_axis_label="y")
 
     for index, year in enumerate(list(year_over_year)):
-        if year !=  list(year_over_year)[-1:]:
+        if year != list(year_over_year)[-1:]:
             p_year_over_years.line(year_over_year[year]['x_values'], year_over_year[year]['y_values'], legend_label=str(year), color=next(colors), line_width=1)
 
         else:
@@ -972,7 +972,7 @@ def gen_bokeh_chart(data_set_id, data_set, each_year, time_frame, year_over_year
 
     for index, year in enumerate(list(year_over_year)):
 
-        if year !=  list(year_over_year)[-1:]:
+        if year != list(year_over_year)[-1:]:
             p_year_over_year_percents.line(year_over_year[year]['x_values'], year_over_year[year]['percent_increase'], legend_label=str(year), color=next(colors), line_width=1)
 
         else:
