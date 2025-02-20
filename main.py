@@ -33,6 +33,7 @@ import warnings
 from statsmodels.tools.sm_exceptions import ConvergenceWarning
 from scipy import optimize
 
+
 def moving_average(window, inputValue):
 
     average_y = []
@@ -45,11 +46,14 @@ def moving_average(window, inputValue):
 
     return average_y
 
+
 def exponential_func(x, a, b, c):
     return a * np.exp(b * x) + c
 
+
 def log_exponential_func(x, lna, b, c):
     return  lna + b * x
+
 
 def gen_all_time(file):
 
@@ -135,6 +139,7 @@ def gen_all_time(file):
 
     return all_time
 
+
 def gen_each_year(all_time):
 
     each_year = {}
@@ -188,6 +193,7 @@ def gen_each_year(all_time):
 
     return each_year
 
+
 def gen_year_over_year(all_time):
 
     year_over_year = {}
@@ -211,6 +217,7 @@ def gen_year_over_year(all_time):
         year_over_year[year]['percent_increase'].append(round((((value - starting_value) / starting_value)*100), 3))
 
     return year_over_year
+
 
 def gen_all_time_high(all_time):
 
@@ -246,6 +253,7 @@ def gen_all_time_high(all_time):
 
     return all_time_high
 
+
 def gen_all_time_downside(all_time):
 
     all_time_downside = {}
@@ -270,6 +278,7 @@ def gen_all_time_downside(all_time):
             all_time_downside['downside_percent'].append(round((((value - cycle_high)/cycle_high)*100), 3))
 
     return all_time_downside
+
 
 def gen_best_fit(data_set):
 
@@ -330,6 +339,7 @@ def gen_best_fit(data_set):
     best_fit['best_fit_exp'] = y_fit
     return(best_fit)
 
+
 def gen_benchmark(data_set):
 
     benchmark = {}
@@ -370,6 +380,7 @@ def gen_benchmark(data_set):
             benchmark[ticker].append(round((((value - starting_value) / starting_value)*100), 3))
 
     return(benchmark)
+
 
 def gen_forecast(data_set):
 
@@ -451,6 +462,7 @@ def gen_forecast(data_set):
 
     return forcasted_values
 
+
 def gen_time_frame_stats(all_time):
 
     time_frame_stats = {}
@@ -480,6 +492,7 @@ def gen_time_frame_stats(all_time):
         time_frame_stats[time_frame]['r2'] = round(r2, 3)
 
     return(time_frame_stats)
+
 
 def gen_bokeh_forecast_chart(data_set, forecasts):
 
@@ -568,6 +581,7 @@ def gen_bokeh_forecast_chart(data_set, forecasts):
     tabs.append(Panel(child=column(p_forecast_this_year, p_forecast, sizing_mode="scale_width"), title="Forecast"))
 
     return tabs
+
 
 def gen_bokeh_chart(data_set_id, data_set, each_year, time_frame, year_over_year, benchmarks):
 
@@ -993,6 +1007,7 @@ def gen_bokeh_chart(data_set_id, data_set, each_year, time_frame, year_over_year
     tabs.append(Panel(child=p_benchmark, title="Benchmark"))
 
     return tabs
+
 
 all_start_time = time.perf_counter()
 
