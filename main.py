@@ -729,12 +729,14 @@ def gen_bokeh_chart(data_set_id, data_set, each_year, time_frame, year_over_year
 
     # add multiple renderers
     p_downside.line(data_set['x_values'], data_set['downside'], legend_label="Downside", color="blue", line_width=1)
-    p_downside.line(data_set['x_values'], data_set['downside_percent'],
+    p_downside.line(
+        data_set['x_values'], 
+        data_set['downside_percent'],
         legend_label="Downside Percent",
         color="green",
         line_width=1,
         y_range_name="foo"
-        )
+    )
 
     p_downside.xaxis[0].formatter = DatetimeTickFormatter(days=["%m - %Y"], months=["%m - %Y"],)
 
