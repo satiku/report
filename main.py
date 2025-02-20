@@ -79,7 +79,7 @@ def gen_all_time(file):
                 if previous_value == 0:
                     previous_value = float(row[2])
 
-                all_time['x_values'].append( datetime.strptime(row[1].split(" ")[0], '%Y-%m-%d'))
+                all_time['x_values'].append(datetime.strptime(row[1].split(" ")[0], '%Y-%m-%d'))
                 all_time['y_values'].append(float(row[2]))
 
                 all_time['daily_percent_increase'].append(((float(row[2]) - previous_value)/previous_value)*100)
@@ -93,13 +93,13 @@ def gen_all_time(file):
 
             all_time['x_values'][-1] = today
 
-        all_time['average_y_5']  = moving_average( 5, all_time['y_values'])
+        all_time['average_y_5']  = moving_average(5, all_time['y_values'])
         all_time['average_y_20'] = moving_average(20, all_time['y_values'])
         all_time['average_y_60'] = moving_average(60, all_time['y_values'])
 
-        all_time['daily_percent_increase_ma_5']   = moving_average(  5, all_time['daily_percent_increase'])
-        all_time['daily_percent_increase_ma_20']  = moving_average( 20, all_time['daily_percent_increase'])
-        all_time['daily_percent_increase_ma_60']  = moving_average( 60, all_time['daily_percent_increase'])
+        all_time['daily_percent_increase_ma_5']   = moving_average(5, all_time['daily_percent_increase'])
+        all_time['daily_percent_increase_ma_20']  = moving_average(20, all_time['daily_percent_increase'])
+        all_time['daily_percent_increase_ma_60']  = moving_average(60, all_time['daily_percent_increase'])
         all_time['daily_percent_increase_ma_250'] = moving_average(250, all_time['daily_percent_increase'])
 
         for index, _ in enumerate(all_time['y_values']):
