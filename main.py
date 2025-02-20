@@ -91,16 +91,16 @@ def gen_all_time(file):
 
             all_time['x_values'][-1] = today
 
-        all_time['average_y_5']  = moving_average(5,all_time['y_values'])
-        all_time['average_y_20'] = moving_average(20,all_time['y_values'])
-        all_time['average_y_60'] = moving_average(60,all_time['y_values'])
+        all_time['average_y_5']  = moving_average( 5, all_time['y_values'])
+        all_time['average_y_20'] = moving_average(20, all_time['y_values'])
+        all_time['average_y_60'] = moving_average(60, all_time['y_values'])
 
-        all_time['daily_percent_increase_ma_5']   = moving_average(  5,all_time['daily_percent_increase'])
-        all_time['daily_percent_increase_ma_20']  = moving_average( 20,all_time['daily_percent_increase'])
-        all_time['daily_percent_increase_ma_60']  = moving_average( 60,all_time['daily_percent_increase'])
-        all_time['daily_percent_increase_ma_250'] = moving_average(250,all_time['daily_percent_increase'])
+        all_time['daily_percent_increase_ma_5']   = moving_average(  5, all_time['daily_percent_increase'])
+        all_time['daily_percent_increase_ma_20']  = moving_average( 20, all_time['daily_percent_increase'])
+        all_time['daily_percent_increase_ma_60']  = moving_average( 60, all_time['daily_percent_increase'])
+        all_time['daily_percent_increase_ma_250'] = moving_average(250, all_time['daily_percent_increase'])
 
-        for index,_ in enumerate(all_time['y_values']):
+        for index, _ in enumerate(all_time['y_values']):
 
             if np.isnan(all_time['average_y_5'][index]):
                 all_time['average_y_5_20'].append(np.nan)
@@ -208,7 +208,7 @@ def gen_year_over_year(all_time):
 
         year_over_year[year]['x_values'].append(index - starting_index)
         year_over_year[year]['y_values'].append(value - starting_value)
-        year_over_year[year]['percent_increase'].append(round((((value - starting_value)/ starting_value)*100),3))
+        year_over_year[year]['percent_increase'].append(round((((value - starting_value)/ starting_value)*100), 3))
 
     return year_over_year
 
@@ -227,11 +227,11 @@ def gen_all_time_high(all_time):
                 item = {}
 
                 item['date'] = all_time['x_values'][cycle_high_index]
-                item['cycle_high'] = round(cycle_high,3)
+                item['cycle_high'] = round(cycle_high, 3)
                 item['cycle_low'] = cycle_low
-                item['difference'] = round(cycle_high - cycle_low,3)
+                item['difference'] = round(cycle_high - cycle_low, 3)
                 item['days'] = cycle_low_index - cycle_high_index
-                item['percent'] = round((((cycle_low - cycle_high)/cycle_high)*100),3)
+                item['percent'] = round((((cycle_low - cycle_high)/cycle_high)*100), 3)
 
                 all_time_high.append(item)
 
@@ -266,8 +266,8 @@ def gen_all_time_downside(all_time):
 
         elif value < cycle_high:
 
-            all_time_downside['downside'].append(round(cycle_high - value,3) * -1)
-            all_time_downside['downside_percent'].append(round((((value - cycle_high)/cycle_high)*100),3))
+            all_time_downside['downside'].append(round(cycle_high - value, 3) * -1)
+            all_time_downside['downside_percent'].append(round((((value - cycle_high)/cycle_high)*100), 3))
 
     return all_time_downside
 
@@ -282,7 +282,7 @@ def gen_best_fit(data_set):
 
     sst = sum([(day - np.average(y))**2 for day in y])
 
-    m_b,ssr, _, _, _ = np.polyfit(np.array(range(len(x))), y, 1,full="true")
+    m_b, ssr, _, _, _ = np.polyfit(np.array(range(len(x))), y, 1, full="true")
 
     m = m_b[0]
     b = m_b[1]
@@ -333,7 +333,7 @@ def gen_best_fit(data_set):
 def gen_benchmark(data_set):
 
     benchmark = {}
-    tickers = ["^GSPC","^IXIC","^DJI"]
+    tickers = ["^GSPC", "^IXIC", "^DJI"]
 
     benchmark['portfolio'] = []
     benchmark['x_values'] = []
@@ -356,7 +356,7 @@ def gen_benchmark(data_set):
 
         value = benchmark_data_set['y_values'][index]
 
-        benchmark['portfolio'].append(round((((value - starting_value)/ starting_value)*100),3))
+        benchmark['portfolio'].append(round((((value - starting_value)/ starting_value)*100), 3))
         benchmark['x_values'].append(index)
 
     for ticker in tickers:
@@ -367,7 +367,7 @@ def gen_benchmark(data_set):
         for date in benchmark_data_set['x_values']:
 
             value = data.loc[date, ('Close', ticker)]
-            benchmark[ticker].append(round((((value - starting_value)/ starting_value)*100),3))
+            benchmark[ticker].append(round((((value - starting_value)/ starting_value)*100), 3))
 
     return(benchmark)
 
@@ -467,7 +467,7 @@ def gen_time_frame_stats(all_time):
         time_frame_stats[time_frame]['percent_increase']       = round((((y_values[-1] - y_values[-1*int(time_frame)])/y_values[-1*int(time_frame)])*100), 3)
         time_frame_stats[time_frame]['daily_percent_increase'] = round((((y_values[-1] - y_values[-1*int(time_frame)])/y_values[-1*int(time_frame)])*100)/int(time_frame), 3)
 
-        m_b,ssr, _, _, _ = np.polyfit(np.array(range(len(y_values[(-1* int(time_frame)):]))), y_values[(-1* int(time_frame)):], 1,full="true")
+        m_b, ssr, _, _, _ = np.polyfit(np.array(range(len(y_values[(-1* int(time_frame)):]))), y_values[(-1* int(time_frame)):], 1, full="true")
 
         sst = sum([(day - np.average(y_values[(-1* int(time_frame)):]))**2 for day in y_values[(-1* int(time_frame)):]])
 
@@ -533,7 +533,7 @@ def gen_bokeh_forecast_chart(data_set, forecasts):
         renderers=[line1]
     )
     cross = CrosshairTool()
-    p_forecast_this_year.add_tools(hover,cross)
+    p_forecast_this_year.add_tools(hover, cross)
 
     p_forecast_this_year.xaxis[0].formatter = DatetimeTickFormatter(days=["%m - %Y"], months=["%m - %Y"],)
     p_forecast_this_year.xaxis.ticker = tickers.MonthsTicker(months=list(range(0, 13, 1)))
@@ -628,7 +628,7 @@ def gen_bokeh_chart(data_set_id, data_set, each_year, time_frame, year_over_year
         renderers=[line1]
     )
     cross = CrosshairTool()
-    p_all.add_tools(hover,cross)
+    p_all.add_tools(hover, cross)
 
     p_all.xaxis[0].formatter = DatetimeTickFormatter(days=["%m - %Y"], months=["%m - %Y"],)
 
@@ -643,8 +643,8 @@ def gen_bokeh_chart(data_set_id, data_set, each_year, time_frame, year_over_year
         start=0,
         end=max(data_set['y_values'])+ (max(data_set['y_values'])*.1),
         step=1,
-        value=(0,data_set['y_values'][-1]),
-        margin=(5,80,5,80)
+        value=(0, data_set['y_values'][-1]),
+        margin=(5, 80, 5, 80)
     )
     range_slider.js_link("value", p_all.y_range, "start", attr_selector=0)
     range_slider.js_link("value", p_all.y_range, "end", attr_selector=1)
@@ -656,7 +656,8 @@ def gen_bokeh_chart(data_set_id, data_set, each_year, time_frame, year_over_year
         title="Daily Percent Increase",
         y_axis_label="y",
         x_range=p_all.x_range,
-        y_range=(-5,5))
+        y_range=(-5, 5)
+    )
 
     # add multiple renderers
     p_all_daily_percent_increase.line(data_set['x_values'], data_set['daily_percent_increase'], legend_label="Value", color="blue", line_width=1)
@@ -679,7 +680,7 @@ def gen_bokeh_chart(data_set_id, data_set, each_year, time_frame, year_over_year
         title="RSI",
         y_axis_label="y",
         x_range=p_all.x_range,
-        y_range=(0,100),
+        y_range=(0, 100),
         )
 
     # add multiple renderers
@@ -694,7 +695,7 @@ def gen_bokeh_chart(data_set_id, data_set, each_year, time_frame, year_over_year
     p_all_rsi.legend.click_policy="hide"
     p_all_rsi.legend.location = "top_left"
 
-    p_macd = figure(x_axis_type="datetime", sizing_mode="scale_width", aspect_ratio=7, title="MACD", x_axis_label="x", y_axis_label="y",x_range=p_all.x_range)
+    p_macd = figure(x_axis_type="datetime", sizing_mode="scale_width", aspect_ratio=7, title="MACD", x_axis_label="x", y_axis_label="y", x_range=p_all.x_range)
 
     # add multiple renderers
 
@@ -761,7 +762,7 @@ def gen_bokeh_chart(data_set_id, data_set, each_year, time_frame, year_over_year
 #
 #
 #
-    each_year_stats_title = Div(text="<h4>Yearly Stats</h4>", margin=(5,80,5,80),)
+    each_year_stats_title = Div(text="<h4>Yearly Stats</h4>", margin=(5, 80, 5, 80),)
 
     each_year_stats = {}
 
@@ -797,10 +798,10 @@ def gen_bokeh_chart(data_set_id, data_set, each_year, time_frame, year_over_year
         width=400,
         height=280,
         index_position=None,
-        margin=(-5,80,-120,80),
+        margin=(-5, 80, -120, 80),
         )
 
-    time_frame_stats_title = Div(text="<h4>Time Frame Stats</h4>", margin=(5,80,5,80),)
+    time_frame_stats_title = Div(text="<h4>Time Frame Stats</h4>", margin=(5, 80, 5, 80))
 
     time_frame_stats = {}
 
@@ -834,10 +835,10 @@ def gen_bokeh_chart(data_set_id, data_set, each_year, time_frame, year_over_year
         width=400,
         height=280,
         index_position=None,
-        margin=(-5,80,-120,80),
+        margin=(-5, 80, -120, 80),
         )
 
-    all_time_high_stats_title = Div(text="<h4>High Low Cycle Stats</h4>", margin=(5,80,5,80),)
+    all_time_high_stats_title = Div(text="<h4>High Low Cycle Stats</h4>", margin=(5, 80, 5, 80))
 
     all_time_high_stats = {}
 
@@ -874,7 +875,7 @@ def gen_bokeh_chart(data_set_id, data_set, each_year, time_frame, year_over_year
         width=400,
         height=280,
         index_position=None,
-        margin=(-5,80,-5,80),
+        margin=(-5, 80, -5, 80),
         )
 
     tabs.append(Panel(child=column(
@@ -898,7 +899,7 @@ def gen_bokeh_chart(data_set_id, data_set, each_year, time_frame, year_over_year
 
     for year in list(each_year):
 
-        p_years['year'] = figure(x_axis_type="datetime", width=chart_width, height=chart_height,title="Multiple line example", x_axis_label="x", y_axis_label="y")
+        p_years['year'] = figure(x_axis_type="datetime", width=chart_width, height=chart_height, title="Multiple line example", x_axis_label="x", y_axis_label="y")
 
         # add multiple renderers
         p_years['year'].line(each_year[year]['x_values'], each_year[year]['y_values'], legend_label="Value", color="blue", line_width=1)
@@ -918,7 +919,7 @@ def gen_bokeh_chart(data_set_id, data_set, each_year, time_frame, year_over_year
         else:
             tabs.append(Panel(child=p_years['year'], title=str(year)+"-YTD"))
 
-    p_all = figure(x_axis_type="datetime", width=chart_width, height=chart_height,title="Multiple line example", x_axis_label="x", y_axis_label="y")
+    p_all = figure(x_axis_type="datetime", width=chart_width, height=chart_height, title="Multiple line example", x_axis_label="x", y_axis_label="y")
 
     # add multiple renderers
     p_all.line(data_set['x_values'][-250:], data_set['y_values'][-250:], legend_label="Value", color="blue", line_width=1)
@@ -941,7 +942,7 @@ def gen_bokeh_chart(data_set_id, data_set, each_year, time_frame, year_over_year
     #colors has a list of colors which can be used in plots
     colors = itertools.cycle(palette)
 
-    p_year_over_years = figure(width=chart_width, height=chart_height,title="Multiple line example", x_axis_label="x", y_axis_label="y")
+    p_year_over_years = figure(width=chart_width, height=chart_height, title="Multiple line example", x_axis_label="x", y_axis_label="y")
 
     for index, year in enumerate(list(year_over_year)):
         if year !=  list(year_over_year)[-1:]:
@@ -953,7 +954,7 @@ def gen_bokeh_chart(data_set_id, data_set, each_year, time_frame, year_over_year
         p_year_over_years.legend.click_policy="hide"
         p_year_over_years.legend.location = "top_left"
 
-    p_year_over_year_percents = figure(width=chart_width, height=chart_height,title="Year Over Year Percent", x_axis_label="x", y_axis_label="y")
+    p_year_over_year_percents = figure(width=chart_width, height=chart_height, title="Year Over Year Percent", x_axis_label="x", y_axis_label="y")
 
     for index, year in enumerate(list(year_over_year)):
 
@@ -1111,7 +1112,7 @@ if args.bokeh:
     tabs0 = Tabs(tabs=tabs)
 
     title_text = "<h1>Date: " + all_time['x_values'][-1].strftime("%Y-%m-%d") + "</h1>"
-    title = Div(text=title_text, margin=(-10,20,-10,20),)
+    title = Div(text=title_text, margin=(-10, 20, -10, 20))
     layout = column(children=[title, tabs0], sizing_mode="stretch_both")
 
     html_file = "financial_analysis.html"
