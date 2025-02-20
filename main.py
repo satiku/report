@@ -69,8 +69,6 @@ def gen_all_time(file):
 
     with open(file, newline='') as csvfile:
 
-    #with open('Net Worth.csv', newline='') as csvfile:
-
         previous_value = float(0)
 
         reader = csv.reader(csvfile)
@@ -955,7 +953,7 @@ def gen_bokeh_chart(data_set_id, data_set, each_year, time_frame, year_over_year
 
     tabs.append(Panel(child=p_all, title="last-250"))
 
-    #colors has a list of colors which can be used in plots
+    # colors has a list of colors which can be used in plots
     colors = itertools.cycle(palette)
 
     p_year_over_years = figure(width=chart_width, height=chart_height, title="Multiple line example", x_axis_label="x", y_axis_label="y")
