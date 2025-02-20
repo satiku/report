@@ -109,7 +109,7 @@ def gen_all_time(file):
 
                 continue
 
-            elif np.isnan(all_time['average_y_20'][index] ):
+            elif np.isnan(all_time['average_y_20'][index]):
                 all_time['average_y_5_20'].append(np.nan)
                 all_time['average_y_5_60'].append(np.nan)
                 all_time['average_y_20_60'].append(np.nan)
@@ -208,7 +208,7 @@ def gen_year_over_year(all_time):
 
         year_over_year[year]['x_values'].append(index - starting_index)
         year_over_year[year]['y_values'].append(value - starting_value)
-        year_over_year[year]['percent_increase'].append(round((((value - starting_value)/ starting_value )*100),3 ))
+        year_over_year[year]['percent_increase'].append(round((((value - starting_value)/ starting_value)*100),3))
 
     return year_over_year
 
@@ -266,8 +266,8 @@ def gen_all_time_downside(all_time):
 
         elif value < cycle_high:
 
-            all_time_downside['downside'].append(round(cycle_high - value,3) * -1 )
-            all_time_downside['downside_percent'].append(round((((value - cycle_high)/cycle_high)*100),3) )
+            all_time_downside['downside'].append(round(cycle_high - value,3) * -1)
+            all_time_downside['downside_percent'].append(round((((value - cycle_high)/cycle_high)*100),3))
 
     return all_time_downside
 
@@ -280,7 +280,7 @@ def gen_best_fit(data_set):
     x = converted_dates
     y = data_set['y_values']
 
-    sst = sum([(day - np.average(y))**2 for day in y ])
+    sst = sum([(day - np.average(y))**2 for day in y])
 
     m_b,ssr, _, _, _ = np.polyfit(np.array(range(len(x))), y, 1,full="true")
 
@@ -356,7 +356,7 @@ def gen_benchmark(data_set):
 
         value = benchmark_data_set['y_values'][index]
 
-        benchmark['portfolio'].append(round((((value - starting_value)/ starting_value )*100),3 ))
+        benchmark['portfolio'].append(round((((value - starting_value)/ starting_value)*100),3))
         benchmark['x_values'].append(index)
 
     for ticker in tickers:
@@ -367,7 +367,7 @@ def gen_benchmark(data_set):
         for date in benchmark_data_set['x_values']:
 
             value = data.loc[date, ('Close', ticker)]
-            benchmark[ticker].append(round((((value - starting_value)/ starting_value )*100),3 ))
+            benchmark[ticker].append(round((((value - starting_value)/ starting_value)*100),3))
 
     return(benchmark)
 
@@ -403,11 +403,11 @@ def gen_forecast(data_set):
 
     modified_data_set['y_values'] = data_set['y_values'][:last_year_index]
 
-    model_add = ExponentialSmoothing(data_set['y_values'], seasonal_periods=250, trend='add', seasonal='add' )
-    model_mul = ExponentialSmoothing(data_set['y_values'], seasonal_periods=250, trend='mul', seasonal='mul' )
+    model_add = ExponentialSmoothing(data_set['y_values'], seasonal_periods=250, trend='add', seasonal='add')
+    model_mul = ExponentialSmoothing(data_set['y_values'], seasonal_periods=250, trend='mul', seasonal='mul')
 
-    this_year_model_add = ExponentialSmoothing(modified_data_set['y_values'], seasonal_periods=250, trend='add', seasonal='add' )
-    this_year_model_mul = ExponentialSmoothing(modified_data_set['y_values'], seasonal_periods=250, trend='mul', seasonal='mul' )
+    this_year_model_add = ExponentialSmoothing(modified_data_set['y_values'], seasonal_periods=250, trend='add', seasonal='add')
+    this_year_model_mul = ExponentialSmoothing(modified_data_set['y_values'], seasonal_periods=250, trend='mul', seasonal='mul')
 
     fitted_model_add = model_add.fit()
     fitted_model_mul = model_mul.fit()
@@ -469,7 +469,7 @@ def gen_time_frame_stats(all_time):
 
         m_b,ssr, _, _, _ = np.polyfit(np.array(range(len(y_values[(-1* int(time_frame)):]))), y_values[(-1* int(time_frame)):], 1,full="true")
 
-        sst = sum([(day - np.average(y_values[(-1* int(time_frame)):]))**2 for day in y_values[(-1* int(time_frame)):] ])
+        sst = sum([(day - np.average(y_values[(-1* int(time_frame)):]))**2 for day in y_values[(-1* int(time_frame)):]])
 
         ssr =ssr[0]
 
@@ -569,7 +569,7 @@ def gen_bokeh_forecast_chart(data_set, forecasts):
 
     return tabs
 
-def gen_bokeh_chart(data_set_id, data_set, each_year, time_frame, year_over_year, benchmarks ):
+def gen_bokeh_chart(data_set_id, data_set, each_year, time_frame, year_over_year, benchmarks):
 
     chart_width = 1500
     chart_height = 800
@@ -698,9 +698,9 @@ def gen_bokeh_chart(data_set_id, data_set, each_year, time_frame, year_over_year
 
     # add multiple renderers
 
-    p_macd.line(data_set['x_values'], data_set['average_y_5_20'], legend_label="Running average 5 - 20",   color="green", line_width=1 )
-#    plt.plot_date(data_set['x_values'], data_set['average_y_5_60'], legend_label='Running average 5 - 60', color='orange', line_width=1 )
-    p_macd.line(data_set['x_values'], data_set['average_y_20_60'], legend_label="Running average 20 - 60", color="red", line_width=1     )
+    p_macd.line(data_set['x_values'], data_set['average_y_5_20'], legend_label="Running average 5 - 20",   color="green", line_width=1)
+#    plt.plot_date(data_set['x_values'], data_set['average_y_5_60'], legend_label='Running average 5 - 60', color='orange', line_width=1)
+    p_macd.line(data_set['x_values'], data_set['average_y_20_60'], legend_label="Running average 20 - 60", color="red", line_width=1)
 
     p_macd.xaxis[0].formatter = DatetimeTickFormatter(days=["%m - %Y"], months=["%m - %Y"],)
 
@@ -1095,7 +1095,7 @@ if args.bokeh:
     bokeh_time = time.perf_counter()
 
     job_start_time = time.perf_counter()
-    tabs = gen_bokeh_chart("all_time", all_time, each_year, time_frame_stats, year_over_year, benchmarks )
+    tabs = gen_bokeh_chart("all_time", all_time, each_year, time_frame_stats, year_over_year, benchmarks)
     print('Generating main bokeh chart                 {0:>3.5f}'.format(
         time.perf_counter() - job_start_time,
         ))
