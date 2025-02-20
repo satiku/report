@@ -89,6 +89,18 @@ def gen_all_time(file):
                 
                 previous_value = float(row[2])
 
+        today = datetime.now().replace(hour=0, minute=0, second=0, microsecond=0)
+
+        # Check and replace the last date if it's in the future
+        if all_time['x_values'][-1] > today:
+            print("error date")
+            print(all_time['x_values'][-1])
+            print(today)
+            all_time['x_values'][-1] = today
+
+
+
+
         all_time['average_y_5']  = moving_average(5 ,all_time['y_values'])
         all_time['average_y_20'] = moving_average(20 ,all_time['y_values'])
         all_time['average_y_60'] = moving_average(60 ,all_time['y_values'])
@@ -525,7 +537,7 @@ def gen_forecast(data_set):
         
         forcasted_values['y_values_this_year_avg'].append((forcasted_values['y_values_this_year_add'][index] + forcasted_values['y_values_this_year_mul'][index])/2)
         
-        print(date.weekday())
+
         if date.weekday() == 4 :
             date = date + timedelta(days = 3)
             forcasted_values['x_values'].append(date) 
