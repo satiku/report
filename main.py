@@ -17,6 +17,8 @@ from bokeh.models import ColumnDataSource, DataTable, TableColumn, Div
 from bokeh.palettes import Dark2_5 as palette
 from bokeh.models import HoverTool
 from bokeh.models import CrosshairTool, Span
+from bokeh.io import output_file, save
+from bokeh.resources import INLINE
 import itertools
 import time
 from datetime import datetime 
@@ -1541,8 +1543,11 @@ if args.bokeh:
 
     title_text = "<h1>Date: " + all_time['x_values'][-1].strftime("%Y-%m-%d") + "</h1>"
     title = Div(text=title_text, margin=(-10,20,-10,20),)
-    
-    show(column(children=[title, tabs0], sizing_mode="scale_width"))
+    layout = column(children=[title, tabs0], sizing_mode="stretch_both")
+#    show(column(children=[title, tabs0], sizing_mode="scale_width"))
+
+    output_file("financial_analysis.html", title="Financial Data Analysis", mode="inline")
+    save(layout, resources=INLINE)
     
     print('Render bokeh chart                          {0:>3.5f}'.format(    
         time.perf_counter() - job_start_time ,         
