@@ -335,7 +335,7 @@ def gen_best_fit(data_set):
     y_fit = exponential_func(x_fit, a, b, c)
 
     best_fit['best_fit_exp'] = y_fit
-    return(best_fit)
+    return best_fit
 
 
 def gen_benchmark(data_set):
@@ -377,7 +377,7 @@ def gen_benchmark(data_set):
             value = data.loc[date, ('Close', ticker)]
             benchmark[ticker].append(round((((value - starting_value) / starting_value)*100), 3))
 
-    return(benchmark)
+    return benchmark
 
 
 def gen_forecast(data_set):
@@ -489,7 +489,7 @@ def gen_time_frame_stats(all_time):
         time_frame_stats[time_frame]['slope'] = round(m, 3)
         time_frame_stats[time_frame]['r2'] = round(r2, 3)
 
-    return(time_frame_stats)
+    return time_frame_stats
 
 
 def gen_bokeh_forecast_chart(data_set, forecasts):
