@@ -525,19 +525,31 @@ def gen_forecast(data_set):
         
         forcasted_values['y_values_this_year_avg'].append((forcasted_values['y_values_this_year_add'][index] + forcasted_values['y_values_this_year_mul'][index])/2)
         
-        
+        print(date.weekday())
         if date.weekday() == 4 :
             date = date + timedelta(days = 3)
+            forcasted_values['x_values'].append(date) 
+            
+            
+        else : 
+            date = date + timedelta(days = 1)            
             forcasted_values['x_values'].append(date)
             
+
+            
+            
+        if this_year_date.weekday() == 4 :
             this_year_date = this_year_date + timedelta(days = 3)
             forcasted_values['x_values_this_year'].append(this_year_date)
+
+
+            
         else : 
-            date = date + timedelta(days = 1)
-            forcasted_values['x_values'].append(date)
-        
             this_year_date = this_year_date + timedelta(days = 1)
             forcasted_values['x_values_this_year'].append(this_year_date)
+
+
+            
 
             
     return forcasted_values
@@ -601,12 +613,65 @@ def gen_bokeh_forecast_chart(data_set, forecasts):
         y_axis_label="y", 
         )
 
-    # add multiple renderers
-    p_forecast_this_year.line(data_set['x_values'], data_set['y_values'], legend_label="Value", color="blue", line_width=1)
+
+
+    source = ColumnDataSource(data={
+        'x'                       : data_set['x_values'],
+        'y_values'                : data_set['y_values'],
+    })    
+        
+        
+    forecast_source = ColumnDataSource(data={        
+        'x_values_this_year'      : forecasts['x_values_this_year'],
+        'y_values_this_year_add'  : forecasts['y_values_this_year_add'],
+        'y_values_this_year_mul'  : forecasts['y_values_this_year_mul'],
+        'y_values_this_year_avg'  : forecasts['y_values_this_year_avg'],
+        'x_values'                : forecasts['x_values'],
+        'y_values_add'            : forecasts['y_values_add'],
+        'y_values_mul'            : forecasts['y_values_mul'],  
+        'y_values_avg'            : forecasts['y_values_avg'],          
+    })
     
-    p_forecast_this_year.line(forecasts['x_values_this_year'], forecasts['y_values_this_year_add'] , legend_label="Holt-Winters add", color="orange", line_width=1)
-    p_forecast_this_year.line(forecasts['x_values_this_year'], forecasts['y_values_this_year_mul'] , legend_label="Holt-Winters mul", color="red", line_width=1)    
-    p_forecast_this_year.line(forecasts['x_values_this_year'], forecasts['y_values_this_year_avg'] , legend_label="Holt-Winters avg", color="green", line_width=1)        
+
+
+
+
+
+
+
+
+
+    # add multiple renderers
+    line1 = \
+    p_forecast_this_year.line('x', 'y_values', source=source, legend_label="Value", color="blue", line_width=1)
+    
+    p_forecast_this_year.line('x_values_this_year', 'y_values_this_year_add', source=forecast_source , legend_label="Holt-Winters add", color="orange", line_width=1)
+    p_forecast_this_year.line('x_values_this_year', 'y_values_this_year_mul', source=forecast_source , legend_label="Holt-Winters mul", color="red", line_width=1)    
+    p_forecast_this_year.line('x_values_this_year', 'y_values_this_year_avg', source=forecast_source , legend_label="Holt-Winters avg", color="green", line_width=1)        
+
+
+
+    hover = HoverTool(
+        tooltips=[
+            ("Date"            , "@x{%F}"),
+            ("Tool"            , "$y{0,0.00}"),
+            ("Value"           , "@y_values{0,0.00}"),
+            ("add"             , "@y_values_this_year_add{0,0.00}"),
+            ("mul"             , "@y_values_this_year_mul{0,0.00}"),
+            ("avg"             , "@y_values_this_year_avg{0,0.00}"),
+        
+        ],
+        formatters={'@x': 'datetime'},
+        mode='vline',
+        renderers=[line1]        
+    )
+    cross = CrosshairTool()
+    p_forecast_this_year.add_tools(hover,cross)
+    
+    
+    
+    
+
 
     p_forecast_this_year.xaxis[0].formatter = DatetimeTickFormatter(days=["%m - %Y"], months=["%m - %Y"],)
     p_forecast_this_year.xaxis.ticker = tickers.MonthsTicker(months=list(range(0, 13, 1)))
@@ -629,7 +694,7 @@ def gen_bokeh_forecast_chart(data_set, forecasts):
         )
 
     # add multiple renderers
-    p_forecast.line(data_set['x_values'], data_set['y_values'], legend_label="Value", color="blue", line_width=1)
+    p_forecast.line('x' , 'y_values', source=source, legend_label="Value", color="blue", line_width=1)
     
     p_forecast.line(forecasts['x_values'], forecasts['y_values_add'] , legend_label="Holt-Winters add", color="orange", line_width=1)
     p_forecast.line(forecasts['x_values'], forecasts['y_values_mul'] , legend_label="Holt-Winters mul", color="red", line_width=1)    
@@ -1296,16 +1361,13 @@ all_start_time = time.perf_counter()
     
     
     
-# Initialize the ArgumentParser
-parser = argparse.ArgumentParser(description="A program to demonstrate optional arguments.")
 
-# Define optional arguments
-parser.add_argument("file_path")
+parser = argparse.ArgumentParser(description="Financial Data Analysis")
+
+parser.add_argument("file_path", help="Path to CSV file")
 parser.add_argument("--silent",    action='store_true', help="Silence warnings")
-
 parser.add_argument("--bokeh",  action='store_true', help="Create Bokeh Charts")
 
-# Parse the arguments
 args = parser.parse_args()
 
 
@@ -1318,7 +1380,14 @@ if args.silent:
 
     
 file_path = args.file_path
-    
+
+if not os.path.exists(file_path):
+        print(f"Error: File '{file_path}' not found in {os.getcwd()}")
+        print("Please provide a valid file path.")
+        exit(1)
+        
+        
+        
 print()
 print()
 print("=====================================================")   
@@ -1329,7 +1398,7 @@ print()
 
 
 job_start_time = time.perf_counter()
-all_time = gen_all_time('P1.csv')
+all_time = gen_all_time(file_path)
 print('Generating base data                       {0:>3.5f}'.format(    
         time.perf_counter() - job_start_time ,         
         ))
