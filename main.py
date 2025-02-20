@@ -27,6 +27,7 @@ from matplotlib.dates import date2num
 from scipy.optimize import curve_fit
 import yfinance as yf
 from statsmodels.tsa.holtwinters import ExponentialSmoothing
+import webbrowser
 
 import warnings
 from statsmodels.tools.sm_exceptions import ConvergenceWarning
@@ -1544,10 +1545,14 @@ if args.bokeh:
     title_text = "<h1>Date: " + all_time['x_values'][-1].strftime("%Y-%m-%d") + "</h1>"
     title = Div(text=title_text, margin=(-10,20,-10,20),)
     layout = column(children=[title, tabs0], sizing_mode="stretch_both")
-#    show(column(children=[title, tabs0], sizing_mode="scale_width"))
 
-    output_file("financial_analysis.html", title="Financial Data Analysis", mode="inline")
+    html_file = "financial_analysis.html"
+    output_file(html_file, title="Financial Data Analysis", mode="inline")
     save(layout, resources=INLINE)
+
+
+    full_path = os.path.abspath(html_file)
+    webbrowser.open(f"file://{full_path}")
 
     print('Render bokeh chart                          {0:>3.5f}'.format(
         time.perf_counter() - job_start_time ,
@@ -1558,5 +1563,3 @@ if args.bokeh:
     print('Total runtime                               {0:>3.5f}'.format(
         time.perf_counter() - all_start_time ,
         ))
-
-
