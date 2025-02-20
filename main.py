@@ -141,7 +141,7 @@ def gen_each_year(all_time):
 
     for index, value in enumerate(all_time['y_values']):
 
-        year =all_time['x_values'][index].year
+        year = all_time['x_values'][index].year
 
         if year not in each_year:
             each_year[year] = {}
@@ -194,7 +194,7 @@ def gen_year_over_year(all_time):
 
     for index, value in enumerate(all_time['y_values']):
 
-        year =all_time['x_values'][index].year
+        year = all_time['x_values'][index].year
 
         if year not in year_over_year:
             year_over_year[year] = {}
@@ -208,7 +208,7 @@ def gen_year_over_year(all_time):
 
         year_over_year[year]['x_values'].append(index - starting_index)
         year_over_year[year]['y_values'].append(value - starting_value)
-        year_over_year[year]['percent_increase'].append(round((((value - starting_value)/ starting_value)*100), 3))
+        year_over_year[year]['percent_increase'].append(round((((value - starting_value) / starting_value)*100), 3))
 
     return year_over_year
 
@@ -286,9 +286,9 @@ def gen_best_fit(data_set):
 
     m = m_b[0]
     b = m_b[1]
-    ssr =ssr[0]
+    ssr = ssr[0]
 
-    r2 = 1 -(ssr/sst)
+    r2 = 1 - (ssr/sst)
 
     theta_2 = np.polyfit(np.array(range(len(x))), y, 2)
 
@@ -296,7 +296,7 @@ def gen_best_fit(data_set):
     percent_increase_daily_avg = percent_increase/len(y)
 
     best_fit_line = []
-    theta_fit_list_2 =[]
+    theta_fit_list_2 = []
 
     for i in range(len(data_set['x_values'])):
 
@@ -356,7 +356,7 @@ def gen_benchmark(data_set):
 
         value = benchmark_data_set['y_values'][index]
 
-        benchmark['portfolio'].append(round((((value - starting_value)/ starting_value)*100), 3))
+        benchmark['portfolio'].append(round((((value - starting_value) / starting_value)*100), 3))
         benchmark['x_values'].append(index)
 
     for ticker in tickers:
@@ -367,7 +367,7 @@ def gen_benchmark(data_set):
         for date in benchmark_data_set['x_values']:
 
             value = data.loc[date, ('Close', ticker)]
-            benchmark[ticker].append(round((((value - starting_value)/ starting_value)*100), 3))
+            benchmark[ticker].append(round((((value - starting_value) / starting_value)*100), 3))
 
     return(benchmark)
 
@@ -434,19 +434,19 @@ def gen_forecast(data_set):
         forcasted_values['y_values_this_year_avg'].append((forcasted_values['y_values_this_year_add'][index] + forcasted_values['y_values_this_year_mul'][index])/2)
 
         if date.weekday() == 4:
-            date=date + timedelta(days=3)
+            date = date + timedelta(days=3)
             forcasted_values['x_values'].append(date)
 
         else:
-            date=date + timedelta(days=1)
+            date = date + timedelta(days=1)
             forcasted_values['x_values'].append(date)
 
         if this_year_date.weekday() == 4:
-            this_year_date=this_year_date + timedelta(days=3)
+            this_year_date = this_year_date + timedelta(days=3)
             forcasted_values['x_values_this_year'].append(this_year_date)
 
         else:
-            this_year_date=this_year_date + timedelta(days=1)
+            this_year_date = this_year_date + timedelta(days=1)
             forcasted_values['x_values_this_year'].append(this_year_date)
 
     return forcasted_values
@@ -467,14 +467,14 @@ def gen_time_frame_stats(all_time):
         time_frame_stats[time_frame]['percent_increase']       = round((((y_values[-1] - y_values[-1*int(time_frame)])/y_values[-1*int(time_frame)])*100), 3)
         time_frame_stats[time_frame]['daily_percent_increase'] = round((((y_values[-1] - y_values[-1*int(time_frame)])/y_values[-1*int(time_frame)])*100)/int(time_frame), 3)
 
-        m_b, ssr, _, _, _ = np.polyfit(np.array(range(len(y_values[(-1* int(time_frame)):]))), y_values[(-1* int(time_frame)):], 1, full="true")
+        m_b, ssr, _, _, _ = np.polyfit(np.array(range(len(y_values[(-1 * int(time_frame)):]))), y_values[(-1 * int(time_frame)):], 1, full="true")
 
-        sst = sum([(day - np.average(y_values[(-1* int(time_frame)):]))**2 for day in y_values[(-1* int(time_frame)):]])
+        sst = sum([(day - np.average(y_values[(-1 * int(time_frame)):]))**2 for day in y_values[(-1 * int(time_frame)):]])
 
-        ssr =ssr[0]
+        ssr = ssr[0]
 
         m = m_b[0]
-        r2 = 1 -(ssr/sst)
+        r2 = 1 - (ssr/sst)
 
         time_frame_stats[time_frame]['slope'] = round(m, 3)
         time_frame_stats[time_frame]['r2'] = round(r2, 3)
@@ -539,7 +539,7 @@ def gen_bokeh_forecast_chart(data_set, forecasts):
     p_forecast_this_year.xaxis.ticker = tickers.MonthsTicker(months=list(range(0, 13, 1)))
     p_forecast_this_year.xaxis.major_label_orientation = 0.9
 
-    p_forecast_this_year.legend.click_policy="hide"
+    p_forecast_this_year.legend.click_policy = "hide"
     p_forecast_this_year.legend.location = "top_left"
 
     p_forecast = figure(
@@ -562,7 +562,7 @@ def gen_bokeh_forecast_chart(data_set, forecasts):
     p_forecast.xaxis.ticker = tickers.MonthsTicker(months=list(range(0, 13, 1)))
     p_forecast.xaxis.major_label_orientation = 0.9
 
-    p_forecast.legend.click_policy="hide"
+    p_forecast.legend.click_policy = "hide"
     p_forecast.legend.location = "top_left"
 
     tabs.append(Panel(child=column(p_forecast_this_year, p_forecast, sizing_mode="scale_width"), title="Forecast"))
@@ -635,13 +635,13 @@ def gen_bokeh_chart(data_set_id, data_set, each_year, time_frame, year_over_year
     p_all.xaxis.ticker = tickers.MonthsTicker(months=list(range(0, 13, 1)))
     p_all.xaxis.major_label_orientation = 0.9
 
-    p_all.legend.click_policy="hide"
+    p_all.legend.click_policy = "hide"
     p_all.legend.location = "top_left"
 
     range_slider = RangeSlider(
         title="Adjust y-axis range",
         start=0,
-        end=max(data_set['y_values'])+ (max(data_set['y_values'])*.1),
+        end=max(data_set['y_values']) + (max(data_set['y_values'])*.1),
         step=1,
         value=(0, data_set['y_values'][-1]),
         margin=(5, 80, 5, 80)
@@ -670,7 +670,7 @@ def gen_bokeh_chart(data_set_id, data_set, each_year, time_frame, year_over_year
     p_all_daily_percent_increase.xaxis.ticker = tickers.MonthsTicker(months=list(range(0, 13, 1)))
     p_all_daily_percent_increase.xaxis.major_label_text_font_size = '0pt'
 
-    p_all_daily_percent_increase.legend.click_policy="hide"
+    p_all_daily_percent_increase.legend.click_policy = "hide"
     p_all_daily_percent_increase.legend.location = "top_left"
 
     p_all_rsi = figure(
@@ -692,7 +692,7 @@ def gen_bokeh_chart(data_set_id, data_set, each_year, time_frame, year_over_year
     p_all_rsi.xaxis.ticker = tickers.MonthsTicker(months=list(range(0, 13, 1)))
     p_all_rsi.xaxis.major_label_text_font_size = '0pt'
 
-    p_all_rsi.legend.click_policy="hide"
+    p_all_rsi.legend.click_policy = "hide"
     p_all_rsi.legend.location = "top_left"
 
     p_macd = figure(x_axis_type="datetime", sizing_mode="scale_width", aspect_ratio=7, title="MACD", x_axis_label="x", y_axis_label="y", x_range=p_all.x_range)
@@ -708,7 +708,7 @@ def gen_bokeh_chart(data_set_id, data_set, each_year, time_frame, year_over_year
     p_macd.xaxis.ticker = tickers.MonthsTicker(months=list(range(0, 13, 1)))
     p_macd.xaxis.major_label_orientation = 0.9
 
-    p_macd.legend.click_policy="hide"
+    p_macd.legend.click_policy = "hide"
     p_macd.legend.location = "top_left"
 
     p_downside = figure(
@@ -743,7 +743,7 @@ def gen_bokeh_chart(data_set_id, data_set, each_year, time_frame, year_over_year
     p_downside.xaxis.ticker = tickers.MonthsTicker(months=list(range(0, 13, 1)))
     p_downside.xaxis.major_label_text_font_size = '0pt'
 
-    p_downside.legend.click_policy="hide"
+    p_downside.legend.click_policy = "hide"
     p_downside.legend.location = "bottom_left"
 
     select = figure(title="Drag the middle and edges of the selection box to change the range above",
@@ -913,7 +913,7 @@ def gen_bokeh_chart(data_set_id, data_set, each_year, time_frame, year_over_year
 
         p_years['year'].xaxis[0].formatter = DatetimeTickFormatter(months="%b %Y")
 
-        p_years['year'].legend.click_policy="hide"
+        p_years['year'].legend.click_policy = "hide"
         p_years['year'].legend.location = "top_left"
 
         if year !=  list(each_year)[-1:]:
@@ -936,7 +936,7 @@ def gen_bokeh_chart(data_set_id, data_set, each_year, time_frame, year_over_year
 
     p_all.xaxis[0].formatter = DatetimeTickFormatter(months="%b %Y")
 
-    p_all.legend.click_policy="hide"
+    p_all.legend.click_policy = "hide"
     p_all.legend.location = "top_left"
 
     tabs.append(Panel(child=p_all, title="last-250"))
@@ -953,7 +953,7 @@ def gen_bokeh_chart(data_set_id, data_set, each_year, time_frame, year_over_year
         else:
             p_year_over_years.line(year_over_year[year]['x_values'], year_over_year[year]['y_values'], legend_label=(str(year) + "-ytd"), color=next(colors), line_width=1)
 
-        p_year_over_years.legend.click_policy="hide"
+        p_year_over_years.legend.click_policy = "hide"
         p_year_over_years.legend.location = "top_left"
 
     p_year_over_year_percents = figure(width=chart_width, height=chart_height, title="Year Over Year Percent", x_axis_label="x", y_axis_label="y")
@@ -966,7 +966,7 @@ def gen_bokeh_chart(data_set_id, data_set, each_year, time_frame, year_over_year
         else:
             p_year_over_year_percents.line(year_over_year[year]['x_values'], year_over_year[year]['percent_increase'], legend_label=(str(year) + "-ytd"), color=next(colors), line_width=1)
 
-        p_year_over_year_percents.legend.click_policy="hide"
+        p_year_over_year_percents.legend.click_policy = "hide"
         p_year_over_year_percents.legend.location = "top_left"
 
     tabs.append(Panel(child=column(p_year_over_years, p_year_over_year_percents), title="YoY"))
@@ -987,7 +987,7 @@ def gen_bokeh_chart(data_set_id, data_set, each_year, time_frame, year_over_year
     p_benchmark.line(benchmarks['x_values'], benchmarks['^DJI'], legend_label="DJI", color="red", line_width=1)
     # show the results
 
-    p_benchmark.legend.click_policy="hide"
+    p_benchmark.legend.click_policy = "hide"
     p_benchmark.legend.location = "top_left"
 
     tabs.append(Panel(child=p_benchmark, title="Benchmark"))
@@ -1013,9 +1013,9 @@ if args.silent:
 file_path = args.file_path
 
 if not os.path.exists(file_path):
-        print(f"Error: File '{file_path}' not found in {os.getcwd()}")
-        print("Please provide a valid file path.")
-        exit(1)
+    print(f"Error: File '{file_path}' not found in {os.getcwd()}")
+    print("Please provide a valid file path.")
+    exit(1)
 
 print()
 print()
