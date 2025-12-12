@@ -1,0 +1,7 @@
+numpy
+pandas
+ta
+yfinance
+scipy
+statsmodels
+bokeh
