@@ -6,13 +6,42 @@ on:
   pull_request:
     branches: [ "main" ]
 
+permissions:
+  contents: read
+  packages: write  # Required for pushing to GHCR
+
 jobs:
-
-  build:
-
+  build-and-push:
     runs-on: ubuntu-latest
-
     steps:
-    - uses: actions/checkout@v4
-    - name: Build the Docker image
-      run: docker build . --file Dockerfile --tag satiku/report:$(date +%s)
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Login to GitHub Container Registry
+        if: github.event_name != 'pull_request'  # Only login/push on actual pushes (not PRs)
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Extract metadata (tags, labels) for Docker
+        id: meta
+        uses: docker/metadata-action@v5
+        with:
+          images: ghcr.io/${{ github.repository }}
+          tags: |
+            type=sha,format=long  # e.g., ghcr.io/satiku/report:sha-860c190d5a
+            type=raw,value=latest,enable={{is_default_branch}}  # latest only on main
+
+      - name: Build and push Docker image
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: Dockerfile
+          push: ${{ github.event_name != 'pull_request' }}  # Push only on actual pushes
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
